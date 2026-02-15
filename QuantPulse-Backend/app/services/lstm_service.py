@@ -39,18 +39,26 @@ def _load_model():
 
     try:
         from huggingface_hub import hf_hub_download
+        from app.config import HF_TOKEN
+
+        token = HF_TOKEN  # None for public repos, set for private
 
         logger.info(f"📥 Downloading LSTM model from Hugging Face ({HF_REPO_ID})...")
-        model_path = hf_hub_download(repo_id=HF_REPO_ID, filename="universal_lstm.h5")
+        model_path = hf_hub_download(repo_id=HF_REPO_ID, filename="universal_lstm.h5", token=token)
         logger.info(f"✅ Model downloaded to: {model_path}")
 
         logger.info(f"📥 Downloading scaler from Hugging Face ({HF_REPO_ID})...")
-        scaler_path = hf_hub_download(repo_id=HF_REPO_ID, filename="universal_scaler.pkl")
+        scaler_path = hf_hub_download(repo_id=HF_REPO_ID, filename="universal_scaler.pkl", token=token)
         logger.info(f"✅ Scaler downloaded to: {scaler_path}")
 
     except Exception as e:
-        logger.error(f"❌ Failed to download model files from Hugging Face: {e}")
-        logger.error("   The LSTM predictor will return Neutral for all tickers.")
+        print(f"\n{'='*60}")
+        print(f"CRITICAL: Model Download Failed")
+        print(f"Could not download from Hugging Face ({HF_REPO_ID})")
+        print(f"Error: {e}")
+        print(f"The LSTM predictor will return Neutral for all tickers.")
+        print(f"{'='*60}\n")
+        logger.error(f"❌ CRITICAL: Model download failed: {e}")
         return
 
     try:
@@ -68,8 +76,11 @@ def _load_model():
         logger.info(f"✅ Scaler loaded: {type(_SCALER).__name__}")
 
     except Exception as e:
-        logger.error(f"❌ Failed to load model/scaler after download: {e}")
-        logger.error("   The LSTM predictor will return Neutral for all tickers.")
+        print(f"\n{'='*60}")
+        print(f"CRITICAL: Model Loading Failed (files downloaded but cannot load)")
+        print(f"Error: {e}")
+        print(f"{'='*60}\n")
+        logger.error(f"❌ CRITICAL: Model load failed after download: {e}")
 
 
 # Load on module import

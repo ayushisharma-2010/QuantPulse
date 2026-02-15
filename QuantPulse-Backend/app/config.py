@@ -2,7 +2,7 @@
 QuantPulse Backend Configuration
 
 Production-grade configuration with multi-provider stock data support.
-Safely handles both local development and Railway cloud deployment.
+Safely handles local development, Railway, and Render cloud deployment.
 """
 
 import os
@@ -12,12 +12,14 @@ import logging
 # Environment Detection and Configuration Loading
 # =============================================================================
 
-# Detect environment (Railway sets RAILWAY_ENVIRONMENT)
+# Detect environment (Railway sets RAILWAY_ENVIRONMENT, Render sets RENDER)
 ENV = os.getenv("ENV", "development")
 IS_RAILWAY = os.getenv("RAILWAY_ENVIRONMENT") is not None
+IS_RENDER = os.getenv("RENDER") is not None
+IS_CLOUD = IS_RAILWAY or IS_RENDER
 
-# Load .env ONLY for local development (not on Railway)
-if not IS_RAILWAY:
+# Load .env ONLY for local development (not on cloud)
+if not IS_CLOUD:
     try:
         from dotenv import load_dotenv
         load_dotenv()
@@ -27,7 +29,8 @@ if not IS_RAILWAY:
     except Exception as e:
         print(f"🔧 Running in {ENV} mode - .env loading failed: {e}")
 else:
-    print(f"🚀 Running on Railway - using environment variables")
+    platform = "Render" if IS_RENDER else "Railway"
+    print(f"🚀 Running on {platform} - using environment variables")
 
 # =============================================================================
 # Application Metadata
@@ -48,6 +51,13 @@ STOCK_PROVIDER = os.getenv("STOCK_PROVIDER", "auto")  # auto, twelvedata, finnhu
 
 # News API Configuration
 NEWSAPI_KEY = os.getenv("NEWSAPI_KEY")
+
+# AI / LLM API Keys (for War Room agents)
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY", "MISSING_KEY")
+SERPER_API_KEY = os.getenv("SERPER_API_KEY", "MISSING_KEY")
+
+# Hugging Face Token (for downloading LSTM model)
+HF_TOKEN = os.getenv("HF_TOKEN", None)  # None = public repo, no token needed
 
 # =============================================================================
 # Demo Mode Detection
@@ -73,7 +83,8 @@ ALLOWED_ORIGINS = [
     "http://127.0.0.1:5173",
     "http://127.0.0.1:5174",
     "http://localhost:8080",
-    # Add Railway domains when deployed
+    # Add Render/Vercel/Railway frontend domains when deployed
+    # e.g. "https://quantpulse.onrender.com"
 ]
 
 # =============================================================================
@@ -131,6 +142,9 @@ def validate_and_log_configuration():
     print(f"NEWSAPI_KEY loaded: {bool(NEWSAPI_KEY)}")
     print(f"FINNHUB_API_KEY loaded: {bool(FINNHUB_API_KEY)}")
     print(f"TWELVEDATA_API_KEY loaded: {bool(TWELVEDATA_API_KEY)}")
+    print(f"GOOGLE_API_KEY loaded: {GOOGLE_API_KEY != 'MISSING_KEY'}")
+    print(f"SERPER_API_KEY loaded: {SERPER_API_KEY != 'MISSING_KEY'}")
+    print(f"HF_TOKEN loaded: {bool(HF_TOKEN)}")
     print(f"DEMO_MODE: {DEMO_MODE}")
     print("=" * 50)
     
@@ -201,6 +215,8 @@ __all__ = [
     # Environment
     "ENV",
     "IS_RAILWAY",
+    "IS_RENDER",
+    "IS_CLOUD",
     "DEMO_MODE",
     
     # Application
@@ -212,6 +228,9 @@ __all__ = [
     "TWELVEDATA_API_KEY",
     "FINNHUB_API_KEY",
     "NEWSAPI_KEY",
+    "GOOGLE_API_KEY",
+    "SERPER_API_KEY",
+    "HF_TOKEN",
     "STOCK_PROVIDER",
     
     # Server
