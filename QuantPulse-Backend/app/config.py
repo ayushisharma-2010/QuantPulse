@@ -83,9 +83,18 @@ ALLOWED_ORIGINS = [
     "http://127.0.0.1:5173",
     "http://127.0.0.1:5174",
     "http://localhost:8080",
-    # Add Render/Vercel/Railway frontend domains when deployed
-    # e.g. "https://quantpulse.onrender.com"
+    # Render deployments
+    "https://quantpulse.onrender.com",
+    "https://quantpulse-frontend.onrender.com",
+    # Vercel / Netlify (if deployed there)
+    "https://quantpulse.vercel.app",
+    "https://quantpulse.netlify.app",
 ]
+
+# Also allow any subdomain on onrender.com via env var override
+_extra_origins = os.getenv("ALLOWED_ORIGINS", "")
+if _extra_origins:
+    ALLOWED_ORIGINS.extend([o.strip() for o in _extra_origins.split(",") if o.strip()])
 
 # =============================================================================
 # Cache Configuration
