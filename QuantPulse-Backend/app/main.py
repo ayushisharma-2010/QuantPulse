@@ -22,14 +22,6 @@ Or simply:
     python run.py
 """
 
-# =============================================================================
-# MUST BE BEFORE ANY IMPORTS — Forces TensorFlow to use Keras 2 (legacy)
-# The LSTM model (.h5) was saved in Keras 2 format; Keras 3 can't load it.
-# =============================================================================
-import os
-os.environ["TF_USE_LEGACY_KERAS"] = "1"
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware

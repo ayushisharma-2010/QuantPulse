@@ -23,7 +23,6 @@ textblob>=0.18.0
 
 # AI and Deep Learning
 tensorflow==2.16.2
-tf-keras>=2.16.0
 huggingface-hub>=0.23.0
 
 # Agentic Framework

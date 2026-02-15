@@ -44,7 +44,7 @@ def _load_model():
         token = HF_TOKEN  # None for public repos, set for private
 
         logger.info(f"📥 Downloading LSTM model from Hugging Face ({HF_REPO_ID})...")
-        model_path = hf_hub_download(repo_id=HF_REPO_ID, filename="universal_lstm.h5", token=token)
+        model_path = hf_hub_download(repo_id=HF_REPO_ID, filename="universal_lstm.keras", token=token)
         logger.info(f"✅ Model downloaded to: {model_path}")
 
         logger.info(f"📥 Downloading scaler from Hugging Face ({HF_REPO_ID})...")
@@ -64,8 +64,6 @@ def _load_model():
     try:
         # Suppress TensorFlow warnings during import
         os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
-        # Force Keras 2 compatibility — the model was saved in Keras 2 format (.h5)
-        os.environ["TF_USE_LEGACY_KERAS"] = "1"
         import tensorflow as tf
         tf.get_logger().setLevel("ERROR")
 
