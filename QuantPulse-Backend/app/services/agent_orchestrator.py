@@ -94,7 +94,7 @@ def _execute_crew(
     )
 
     # ---- Tool (only for Fundamentalist) ----
-    search_tool = SerperDevTool()
+    search_tool = SerperDevTool(api_key=os.getenv("SERPER_API_KEY", ""))
 
     # ---- Extract data for prompts ----
     lstm_prob = lstm_result.get("probability", 0.5)
