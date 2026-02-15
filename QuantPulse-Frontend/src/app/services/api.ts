@@ -139,7 +139,7 @@ export async function fetchNewsSentiment(
     const errorData = await response.json();
     throw new Error(
       errorData.detail?.message ||
-        `Failed to fetch news sentiment for ${symbol}`,
+      `Failed to fetch news sentiment for ${symbol}`,
     );
   }
 
@@ -287,6 +287,68 @@ export async function fetchEnsemblePredictionGet(
     const errorData = await response.json();
     throw new Error(
       errorData.detail || `Failed to fetch ensemble prediction for ${symbol}`,
+    );
+  }
+
+  return response.json();
+}
+
+// =============================================================================
+// V2 AI Analysis (LSTM + HMM + War Room)
+// =============================================================================
+
+export interface V2AnalysisData {
+  ticker: string;
+  regime: string;
+  vix: number;
+  ai_signal: string;
+  confidence: string;
+  final_report: string;
+  stock_price: {
+    current_price: number | null;
+    previous_close: number | null;
+    day_change: number | null;
+    day_change_pct: number | null;
+  };
+  details: {
+    lstm: {
+      probability: number;
+      signal: string;
+      features: {
+        rsi: number;
+        macd: number;
+        volatility: number;
+        bollinger_pctb: number;
+        norm_atr: number;
+      };
+    };
+    regime_detection: {
+      regime: string;
+      confidence: number;
+      all_states: Record<string, unknown>;
+    };
+    war_room: {
+      verdict: string;
+      agents_used: string[];
+      error: string | null;
+    };
+  };
+}
+
+/**
+ * Fetch V2 AI analysis (LSTM + HMM regime + War Room agents)
+ */
+export async function fetchV2Analysis(
+  symbol: string,
+): Promise<V2AnalysisData> {
+  const response = await fetch(
+    `${API_BASE_URL}/api/v2/analyze/${symbol.toUpperCase()}`,
+  );
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(
+      errorData.detail?.message || `Failed to fetch V2 analysis for ${symbol}`,
     );
   }
 

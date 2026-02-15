@@ -53,8 +53,9 @@ NEWSAPI_KEY = os.getenv("NEWSAPI_KEY")
 # Demo Mode Detection
 # =============================================================================
 
-# Automatically enable demo mode if no stock API keys are available
-DEMO_MODE = not (TWELVEDATA_API_KEY or FINNHUB_API_KEY)
+# V2 pipeline uses yfinance exclusively — demo mode is no longer relevant
+# Force False so legacy V1 startup logs don't print scary warnings
+DEMO_MODE = False
 
 # =============================================================================
 # Server Configuration
@@ -86,7 +87,7 @@ CACHE_DEFAULT_TTL = int(os.getenv("CACHE_DEFAULT_TTL", 3600))
 # Logging Configuration
 # =============================================================================
 
-LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
+LOG_LEVEL = os.getenv("LOG_LEVEL", "DEBUG")
 
 def setup_logging():
     """Setup application logging with environment-appropriate configuration"""

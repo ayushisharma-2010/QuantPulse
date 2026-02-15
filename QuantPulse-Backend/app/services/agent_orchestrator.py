@@ -1,0 +1,347 @@
+# =============================================================================
+# ENVIRONMENT SETUP — Must execute BEFORE any other imports
+# =============================================================================
+import os
+import time
+import logging
+import traceback
+
+# Bridge GOOGLE_API_KEY → GEMINI_API_KEY for LiteLLM's gemini/ provider
+_gkey = os.getenv("GOOGLE_API_KEY", "")
+if _gkey:
+    os.environ["GEMINI_API_KEY"] = _gkey
+
+from dotenv import load_dotenv
+load_dotenv()
+
+from crewai import Agent, Task, Crew, Process, LLM
+from crewai_tools import SerperDevTool
+
+logger = logging.getLogger(__name__)
+logger.info("✅ CrewAI + LLM + SerperDev imported successfully")
+
+# =============================================================================
+# Validate API Keys at import time — crash loud if missing
+# =============================================================================
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+SERPER_API_KEY = os.getenv("SERPER_API_KEY")
+
+if not GOOGLE_API_KEY:
+    raise RuntimeError("❌ GOOGLE_API_KEY not found. Add it to .env.")
+if not SERPER_API_KEY:
+    raise RuntimeError("❌ SERPER_API_KEY not found. Add it to .env.")
+
+logger.info("✅ API keys verified (GOOGLE_API_KEY, SERPER_API_KEY)")
+
+
+# =============================================================================
+# THE WAR ROOM — Zero-Fail Entry Point
+# =============================================================================
+
+def run_war_room(
+    ticker: str,
+    lstm_result: dict,
+    regime_result: dict,
+    vix_level: float,
+    features_summary: dict,
+) -> dict:
+    """
+    Run the multi-agent War Room debate.
+
+    ZERO-FAIL GUARANTEE:
+    - If agents succeed → returns full AI Investment Memo
+    - If agents fail → returns fallback memo from real LSTM + HMM data
+    - NEVER raises an exception. NEVER returns a 500.
+    """
+
+    # Phase A: Mandatory cooldown — Free Tier quota reset
+    logger.info("⏳ Phase A: 15s cooldown for Free Tier quota reset...")
+    time.sleep(15)
+
+    try:
+        # Phase B: Run the crew
+        return _execute_crew(ticker, lstm_result, regime_result, vix_level, features_summary)
+    except Exception as e:
+        # Phase C: Fail-safe — return fallback memo from REAL data
+        error_msg = f"War Room failed: {type(e).__name__}: {e}"
+        logger.error(f"❌ {error_msg}")
+        logger.error(traceback.format_exc())
+        logger.warning("⚠️ Falling back to rule-based Investment Memo...")
+        result = _build_fallback_memo(ticker, lstm_result, regime_result, vix_level, features_summary)
+        result["error"] = error_msg
+        return result
+
+
+# =============================================================================
+# CREW EXECUTION — Core logic (may raise, caught by run_war_room)
+# =============================================================================
+
+def _execute_crew(
+    ticker: str,
+    lstm_result: dict,
+    regime_result: dict,
+    vix_level: float,
+    features_summary: dict,
+) -> dict:
+
+    # ---- LLM Brain (Native CrewAI → LiteLLM → Gemini) ----
+    # gemini-2.0-flash-lite: highest free-tier quota (30 RPM).
+    # Best choice for stable daily usage on Free Tier.
+    llm = LLM(
+        model="gemini/gemini-2.0-flash-lite",
+        api_key=os.getenv("GOOGLE_API_KEY"),
+        temperature=0.2,
+    )
+
+    # ---- Tool (only for Fundamentalist) ----
+    search_tool = SerperDevTool()
+
+    # ---- Extract data for prompts ----
+    lstm_prob = lstm_result.get("probability", 0.5)
+    lstm_signal = lstm_result.get("signal", "Neutral")
+    regime = regime_result.get("regime", "Sideways")
+    regime_confidence = regime_result.get("confidence", 0.5)
+    rsi = features_summary.get("rsi", 50)
+    macd = features_summary.get("macd", 0)
+    bollinger = features_summary.get("bollinger_pctb", 0.5)
+
+    # =====================================================================
+    # AGENT 1: The Fundamentalist
+    # =====================================================================
+    fundamentalist = Agent(
+        role="Fundamentalist Analyst",
+        goal=(
+            f"Research the latest news and macro conditions for {ticker} on NSE India. "
+            f"The current India VIX is {vix_level:.1f}. "
+            f"Assess whether the macro environment supports or threatens this stock."
+        ),
+        backstory=(
+            "You are a seasoned macro analyst at a top Indian hedge fund. "
+            "You read The Economic Times, Moneycontrol, and Bloomberg every morning. "
+            "You never ignore VIX — above 22 means the market is scared."
+        ),
+        tools=[search_tool],
+        llm=llm,
+        verbose=False,
+        allow_delegation=False,
+    )
+
+    # =====================================================================
+    # AGENT 2: The Technician
+    # =====================================================================
+    technician = Agent(
+        role="Technical Analyst (Chartist)",
+        goal=(
+            f"Analyze the technical signals for {ticker}. "
+            f"LSTM neural network: Probability={lstm_prob:.1%}, Signal={lstm_signal}. "
+            f"Indicators: RSI={rsi}, MACD={macd:.4f}, Bollinger %B={bollinger:.4f}. "
+            f"Confirm or challenge the LSTM signal."
+        ),
+        backstory=(
+            "You are an expert technical analyst with 15 years of experience. "
+            "You trust the LSTM model but always cross-verify with RSI and Bollinger Bands. "
+            "RSI > 70 = overbought, RSI < 30 = oversold."
+        ),
+        llm=llm,
+        verbose=False,
+        allow_delegation=False,
+    )
+
+    # =====================================================================
+    # AGENT 3: The Risk Manager (THE BOSS)
+    # =====================================================================
+    veto_rules = []
+    if "Bear" in regime or vix_level > 22:
+        veto_rules.append(
+            f"⚠️ VETO ACTIVE: Regime='{regime}' and/or VIX={vix_level:.1f}>22. "
+            f"You MUST VETO any Buy unless exceptionally positive news justifies it."
+        )
+    if lstm_prob > 0.70 and "Bull" in regime:
+        veto_rules.append(
+            f"✅ STRONG SIGNAL: LSTM={lstm_prob:.1%} with Bull regime. "
+            f"If no red flags, this is a STRONG BUY."
+        )
+    veto_text = "\n".join(veto_rules) if veto_rules else "No special veto rules. Use your judgment."
+
+    risk_manager = Agent(
+        role="Chief Risk Manager (Final Decision Maker)",
+        goal=(
+            f"You are the FINAL decision maker for {ticker}. "
+            f"Regime: {regime} ({regime_confidence:.0%}). VIX: {vix_level:.1f}. "
+            f"LSTM: {lstm_signal} ({lstm_prob:.1%}). "
+            f"\n\nVETO RULES:\n{veto_text}\n\n"
+            f"Issue FINAL VERDICT: STRONG BUY / BUY / HOLD / SELL / STRONG SELL."
+        ),
+        backstory=(
+            "You are the Chief Risk Officer managing ₹5000 Cr in Indian equities. "
+            "You have VETO power. You've seen the 2008 crash, COVID crash, and 2024 bubble. "
+            "When VIX > 22, you become extremely cautious."
+        ),
+        llm=llm,
+        verbose=False,
+        allow_delegation=False,
+    )
+
+    # =====================================================================
+    # TASKS — Each explicitly bound to its agent
+    # =====================================================================
+    fundamental_task = Task(
+        description=(
+            f"Search for \"{ticker} India stock latest news\". "
+            f"India VIX is {vix_level:.1f}. "
+            f"Report: bullish, bearish, or neutral? Any red flags?"
+        ),
+        agent=fundamentalist,
+        expected_output="3-5 bullet news summary. End with: BULLISH, BEARISH, or NEUTRAL.",
+    )
+
+    technical_task = Task(
+        description=(
+            f"Analyze {ticker} technicals. "
+            f"LSTM: {lstm_signal} ({lstm_prob:.1%}). "
+            f"RSI={rsi}, MACD={macd:.4f}, Bollinger %B={bollinger:.4f}. "
+            f"Confirm or contradict the AI signal."
+        ),
+        agent=technician,
+        expected_output="Technical analysis. End with: CONFIRMS AI or CONTRADICTS AI.",
+    )
+
+    manager_task = Task(
+        description=(
+            f"Final Investment Decision for {ticker} (NSE)\n\n"
+            f"Regime: {regime} ({regime_confidence:.0%}), VIX: {vix_level:.1f}\n"
+            f"LSTM: {lstm_signal} ({lstm_prob:.1%})\n"
+            f"Veto Rules: {veto_text}\n\n"
+            f"Write an Investment Memo with sections:\n"
+            f"1. Ticker & Date\n2. Market Regime\n3. LSTM Signal\n"
+            f"4. News Analysis\n5. Technical Analysis\n"
+            f"6. Risk Assessment\n7. FINAL VERDICT\n8. Justification"
+        ),
+        agent=risk_manager,
+        expected_output="Structured Markdown Investment Memo with FINAL VERDICT.",
+    )
+
+    # =====================================================================
+    # CREW — Sequential, Verbose
+    # =====================================================================
+    logger.info(f"🏛️ War Room convening for {ticker}...")
+
+    crew = Crew(
+        agents=[fundamentalist, technician, risk_manager],
+        tasks=[fundamental_task, technical_task, manager_task],
+        process=Process.sequential,
+        verbose=True,
+    )
+
+    result = crew.kickoff()
+
+    memo_text = str(result)
+    verdict = _extract_verdict(memo_text)
+    logger.info(f"📋 War Room complete for {ticker}: {verdict}")
+
+    return {
+        "memo": memo_text,
+        "verdict": verdict,
+        "agents_used": ["Fundamentalist", "Technician", "Risk Manager"],
+        "error": None,
+    }
+
+
+# =============================================================================
+# FALLBACK MEMO — Built from REAL LSTM + HMM data (never crashes)
+# =============================================================================
+
+def _build_fallback_memo(
+    ticker: str,
+    lstm_result: dict,
+    regime_result: dict,
+    vix_level: float,
+    features_summary: dict,
+) -> dict:
+    lstm_prob = lstm_result.get("probability", 0.5)
+    lstm_signal = lstm_result.get("signal", "Neutral")
+    regime = regime_result.get("regime", "Sideways")
+    regime_confidence = regime_result.get("confidence", 0.5)
+    rsi = features_summary.get("rsi", 50)
+    macd = features_summary.get("macd", 0)
+    bollinger = features_summary.get("bollinger_pctb", 0.5)
+
+    # Apply veto logic
+    if ("Bear" in regime or vix_level > 22) and lstm_signal == "Buy":
+        verdict = "HOLD"
+        justification = (
+            f"LSTM suggests Buy ({lstm_prob:.0%}), but VETO: "
+            f"Regime='{regime}', VIX={vix_level:.1f}. Capital preservation priority."
+        )
+    elif lstm_prob > 0.70 and "Bull" in regime:
+        verdict = "STRONG BUY"
+        justification = (
+            f"Strong confluence: LSTM {lstm_prob:.0%} + Bull regime ({regime_confidence:.0%}). "
+            f"VIX {vix_level:.1f} manageable."
+        )
+    elif lstm_signal == "Buy":
+        verdict = "BUY"
+        justification = f"LSTM Buy ({lstm_prob:.0%}) in {regime}. RSI {rsi:.1f} supports entry."
+    elif lstm_signal == "Sell":
+        verdict = "SELL"
+        justification = f"LSTM Sell ({lstm_prob:.0%}). RSI {rsi:.1f} confirms bearish momentum."
+    else:
+        verdict = "HOLD"
+        justification = f"Mixed signals — LSTM {lstm_prob:.0%}, regime {regime}, RSI {rsi:.1f}."
+
+    rsi_status = "⚠️ Overbought" if rsi > 70 else ("📉 Oversold" if rsi < 30 else f"Normal ({rsi:.1f})")
+    bb_status = "Extended" if bollinger > 1 else ("Compressed" if bollinger < 0 else f"Within bands ({bollinger:.2f})")
+
+    memo = f"""## Investment Memo: {ticker} (NSE)
+
+### 1. Market Regime
+**{regime}** (confidence: {regime_confidence:.0%}) — HMM on Nifty 50
+
+### 2. LSTM AI Signal
+- Probability: **{lstm_prob:.1%}**
+- Signal: **{lstm_signal}**
+
+### 3. Technical Indicators
+| Indicator | Value | Status |
+|-----------|-------|--------|
+| RSI (14) | {rsi:.1f} | {rsi_status} |
+| MACD | {macd:.4f} | {'Bullish' if macd > 0 else 'Bearish'} |
+| Bollinger %B | {bollinger:.4f} | {bb_status} |
+
+### 4. India VIX
+**{vix_level:.1f}** {'⚠️ Elevated fear' if vix_level > 22 else '✅ Calm market'}
+
+### 5. Risk Assessment
+{'🔴 VETO: Bear regime / elevated VIX. Defensive positioning.' if ('Bear' in regime or vix_level > 22) else '🟢 No veto conditions.'}
+
+### 6. FINAL VERDICT: **{verdict}**
+{justification}
+
+---
+*📊 Real LSTM + HMM data. AI agents temporarily offline.*
+*⚠️ Not financial advice. Educational purposes only.*
+"""
+
+    return {
+        "memo": memo,
+        "verdict": verdict,
+        "agents_used": ["Technical Analysis Fallback (LSTM + HMM)"],
+        "error": None,
+    }
+
+
+# =============================================================================
+# HELPERS
+# =============================================================================
+
+def _extract_verdict(memo: str) -> str:
+    memo_upper = memo.upper()
+    if "STRONG BUY" in memo_upper:
+        return "STRONG BUY"
+    if "STRONG SELL" in memo_upper:
+        return "STRONG SELL"
+    if "SELL" in memo_upper and "BUY" not in memo_upper:
+        return "SELL"
+    if "BUY" in memo_upper and "SELL" not in memo_upper:
+        return "BUY"
+    return "HOLD"

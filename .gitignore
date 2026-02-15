@@ -254,3 +254,9 @@ cython_debug/
 
 # QuantPulse Specific
 tempCodeRunnerFile.exe
+
+#Models
+*.h5
+*.pkl
+*.pt
+*.pth

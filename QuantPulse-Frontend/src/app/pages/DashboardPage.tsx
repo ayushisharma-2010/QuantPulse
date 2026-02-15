@@ -1,28 +1,35 @@
 import { useState, useEffect, useCallback } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { StockInput } from "@/app/components/StockInput";
 import { StockChart } from "@/app/components/StockChart";
-import { SentimentIndicator } from "@/app/components/SentimentIndicator";
-import { NewsSentiment } from "@/app/components/NewsSentiment";
 import { MarketContextStrip } from "@/app/components/MarketContextStrip";
-import { AIPredictionCard } from "@/app/components/AIPredictionCard";
-import { StockMetrics } from "@/app/components/StockMetrics";
-import { PredictionEnsembleCard } from "@/app/components/PredictionEnsembleCard";
 import {
   fetchStockData,
-  fetchAIPrediction,
-  fetchEnsemblePrediction,
+  fetchV2Analysis,
   type StockData,
-  type AIPredictionData,
-  type EnsemblePredictionData,
-  type ApiError,
+  type V2AnalysisData,
 } from "@/app/services/api";
-import { Loader2, AlertCircle, Zap } from "lucide-react";
+import {
+  Loader2,
+  AlertCircle,
+  Brain,
+  TrendingUp,
+  TrendingDown,
+  BarChart2,
+  AlertTriangle,
+  FileText,
+  Activity,
+  Shield,
+  ArrowUpRight,
+  ArrowDownRight,
+  Minus,
+} from "lucide-react";
 
-// Mock data generator for chart (keeping this for now until chart backend is ready)
+// Chart data generator (until real OHLC endpoint is built)
 const generateStockData = (basePrice: number) => {
   const data = [];
   let price = basePrice;
-
   for (let i = 0; i < 24; i++) {
     const change = (Math.random() - 0.5) * (basePrice * 0.02);
     price = price + change;
@@ -36,232 +43,46 @@ const generateStockData = (basePrice: number) => {
 
 export function DashboardPage() {
   const [selectedStock, setSelectedStock] = useState("RELIANCE");
-
-  // Data States
   const [stockData, setStockData] = useState<StockData | null>(null);
-  const [aiData, setAiData] = useState<AIPredictionData | null>(null);
-  const [ensembleData, setEnsembleData] =
-    useState<EnsemblePredictionData | null>(null);
+  const [v2Data, setV2Data] = useState<V2AnalysisData | null>(null);
   const [chartData, setChartData] = useState<any[]>([]);
-
-  // Loading & Error States
   const [isLoading, setIsLoading] = useState(true);
-  const [isEnsembleLoading, setIsEnsembleLoading] = useState(false);
+  const [isV2Loading, setIsV2Loading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [isOfflineMode, setIsOfflineMode] = useState(false);
-  const [shockActive, setShockActive] = useState(false);
+  const loadDashboardData = useCallback(async (symbol: string) => {
+    setIsLoading(true);
+    setError(null);
 
-  // Mock Data Generators for Offline Mode
-  const getOfflineStockData = (symbol: string): StockData => ({
-    symbol: symbol,
-    yahooSymbol: `${symbol}.NS`,
-    companyName: `${symbol} India Ltd (Demo)`,
-    currentPrice: 2450.0,
-    previousClose: 2400.0,
-    change: 50.0,
-    changePercent: 2.08,
-    volume: 1500000,
-    volumeFormatted: "1.5M",
-    marketCap: 15000000000,
-    marketCapFormatted: "1.5T",
-    currency: "INR",
-    exchange: "NSE",
-    timestamp: new Date().toISOString(),
-    marketState: "REGULAR",
-  });
+    // 1. Fetch V1 stock data (for chart + company name)
+    try {
+      const stock = await fetchStockData(symbol);
+      setStockData(stock);
+      setChartData(generateStockData(stock.currentPrice));
+    } catch {
+      // If V1 fails, we still continue with V2 (which has live price)
+      setStockData(null);
+      setChartData([]);
+    }
+    setIsLoading(false);
 
-  const getOfflineAiData = (symbol: string): AIPredictionData => ({
-    symbol: symbol,
-    timestamp: new Date().toISOString(),
-    prediction: {
-      direction: "UP",
-      trendLabel: "Bullish",
-      overallConfidence: 85,
-      signalsAgree: true,
-      signalsConflict: false,
-      agreementStatus: "agree",
-    },
-    technical: {
-      direction: "UP",
-      trendLabel: "Strong Buy",
-      confidence: 88,
-      weight: "High",
-      currentPrice: 2450.0,
-      sma5Day: 2410.0,
-      deviationPercent: 1.6,
-    },
-    news: {
-      sentimentLabel: "Positive",
-      sentimentDirection: "UP",
-      confidence: 70,
-      weight: "Medium",
-      articlesAnalyzed: 15,
-    },
-    explanation: [
-      "Technical indicators show strong upward momentum.",
-      "Positive news sentiment supports the bullish trend.",
-      "Price is trading above key moving averages.",
-    ],
-    logic: {
-      rule1: "Price > SMA20",
-      rule2: "RSI < 70 (Not Overbought)",
-      rule3: "MACD > Signal Line",
-      rule4: "Volume > Average",
-    },
-    disclaimer: "This is a demo prediction generated for offline mode.",
-  });
-
-  const getOfflineEnsembleData = (
-    symbol: string,
-    currentPrice: number,
-    shock: boolean = false,
-  ): EnsemblePredictionData => ({
-    symbol: symbol,
-    timestamp: new Date().toISOString(),
-    current_price: currentPrice,
-    weighted_prediction: shock ? currentPrice * 0.95 : currentPrice * 1.035,
-    confidence_score: shock ? 58 : 78,
-    direction: shock ? "DOWN" : "UP",
-    price_change_percent: shock ? -5.0 : 3.5,
-    components: {
-      quant_agent: {
-        base_forecast: currentPrice * 1.02,
-        confidence: 72,
-        direction: "UP",
-        volatility: 2.5,
-        trend_strength: 0.65,
-        weight: 0.5,
-      },
-      topology_agent: {
-        risk_adjustment: shock ? 0.88 : 0.97,
-        adjusted_price: shock ? currentPrice * 0.97 : currentPrice * 1.01,
-        network_risk_penalty: shock ? 0.12 : 0.03,
-        cluster_name: "Financial Triad",
-        cluster_risk: shock ? "Critical" : "Moderate",
-        centrality_score: 0.45,
-        contagion_risk: shock ? 0.65 : 0.25,
-        neighbor_signals: [
-          {
-            symbol: "HDFCBANK",
-            signal: shock ? "bearish" : "bullish",
-            risk_score: 0.4,
-          },
-          {
-            symbol: "ICICIBANK",
-            signal: shock ? "bearish" : "bullish",
-            risk_score: 0.42,
-          },
-        ],
-        weight: 0.3,
-      },
-      sentiment_agent: {
-        sentiment_multiplier: shock ? 0.92 : 1.05,
-        consensus_score: shock ? -0.4 : 0.5,
-        sentiment_label: shock ? "Bearish" : "Bullish",
-        bull_bear_ratio: shock ? 0.3 : 0.75,
-        confidence: 65,
-        weight: 0.2,
-      },
-    },
-    comparison: {
-      lstm_base: currentPrice * 1.02,
-      agentic_adjusted: shock ? currentPrice * 0.95 : currentPrice * 1.035,
-      topology_adjustment_pct: shock ? -3.5 : -1.0,
-      sentiment_adjustment_pct: shock ? -1.5 : 1.5,
-      total_adjustment_pct: shock ? -5.0 : 1.5,
-    },
-    shock_simulation_active: shock,
-    disclaimer: "This is a demo ensemble prediction for offline mode.",
-  });
-
-  // Fetch ensemble prediction separately (can be triggered with shock)
-  const loadEnsembleData = useCallback(
-    async (symbol: string, shock: boolean = false) => {
-      setIsEnsembleLoading(true);
-      try {
-        const ensemble = await fetchEnsemblePrediction(symbol, shock);
-        setEnsembleData(ensemble);
-      } catch (err) {
-        console.warn("Ensemble prediction failed:", err);
-        // Use offline data
-        if (stockData) {
-          setEnsembleData(
-            getOfflineEnsembleData(symbol, stockData.currentPrice, shock),
-          );
-        }
-      } finally {
-        setIsEnsembleLoading(false);
+    // 2. Fetch V2 AI Analysis (LSTM + HMM + War Room) — this is the real source of truth
+    setIsV2Loading(true);
+    try {
+      const v2 = await fetchV2Analysis(symbol);
+      setV2Data(v2);
+      // If V2 returned a price, update chart with real price
+      if (v2.stock_price?.current_price) {
+        setChartData(generateStockData(v2.stock_price.current_price));
       }
-    },
-    [stockData],
-  );
+    } catch (err) {
+      console.warn("V2 Analysis failed:", err);
+      setV2Data(null);
+    } finally {
+      setIsV2Loading(false);
+    }
+  }, []);
 
-  // Fetch all dashboard data
-  const loadDashboardData = useCallback(
-    async (symbol: string) => {
-      setIsLoading(true);
-      setError(null);
-      setIsOfflineMode(false);
-
-      try {
-        // 1. Fetch live stock info
-        const stock = await fetchStockData(symbol);
-        setStockData(stock);
-
-        // Update chart with new base price (simulation)
-        setChartData(generateStockData(stock.currentPrice));
-
-        // 2. Fetch AI prediction (News sentiment is fetched inside the component)
-        const ai = await fetchAIPrediction(symbol);
-        setAiData(ai);
-
-        // 3. Fetch Ensemble prediction
-        try {
-          const ensemble = await fetchEnsemblePrediction(symbol, shockActive);
-          setEnsembleData(ensemble);
-        } catch {
-          setEnsembleData(
-            getOfflineEnsembleData(symbol, stock.currentPrice, shockActive),
-          );
-        }
-      } catch (err) {
-        console.warn(
-          "Dashboard data fetch failed (Backend might be offline):",
-          err,
-        );
-        // Fail gracefully to offline mode
-        setIsOfflineMode(true);
-
-        const offlineStock = getOfflineStockData(symbol);
-        setStockData(offlineStock);
-        setChartData(generateStockData(offlineStock.currentPrice));
-        setAiData(getOfflineAiData(symbol));
-        setEnsembleData(
-          getOfflineEnsembleData(
-            symbol,
-            offlineStock.currentPrice,
-            shockActive,
-          ),
-        );
-
-        // We don't set 'error' state to avoid the red alert
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [shockActive],
-  );
-
-  // Handle shock simulation toggle
-  const handleShockToggle = useCallback(() => {
-    const newShockState = !shockActive;
-    setShockActive(newShockState);
-    // Re-fetch ensemble with new shock state
-    loadEnsembleData(selectedStock, newShockState);
-  }, [shockActive, selectedStock, loadEnsembleData]);
-
-  // Initial load
   useEffect(() => {
     loadDashboardData(selectedStock);
   }, [selectedStock, loadDashboardData]);
@@ -270,9 +91,34 @@ export function DashboardPage() {
     setSelectedStock(ticker.toUpperCase());
   };
 
+  // Use V2 live price if available, fallback to V1
+  const livePrice = v2Data?.stock_price?.current_price ?? stockData?.currentPrice ?? 0;
+  const prevClose = v2Data?.stock_price?.previous_close ?? stockData?.previousClose ?? 0;
+  const dayChange = v2Data?.stock_price?.day_change ?? stockData?.change ?? 0;
+  const dayChangePct = v2Data?.stock_price?.day_change_pct ?? stockData?.changePercent ?? 0;
+  const isPositive = dayChange >= 0;
+
+  // Signal config
+  const getSignalConfig = (signal: string) => {
+    switch (signal) {
+      case "Buy":
+        return { color: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/20", icon: ArrowUpRight };
+      case "Sell":
+        return { color: "text-red-400", bg: "bg-red-500/10", border: "border-red-500/20", icon: ArrowDownRight };
+      default:
+        return { color: "text-blue-400", bg: "bg-blue-500/10", border: "border-blue-500/20", icon: Minus };
+    }
+  };
+
+  const getVerdictConfig = (verdict: string) => {
+    if (verdict.includes("BUY")) return "bg-emerald-500/15 text-emerald-400 border-emerald-500/30";
+    if (verdict.includes("SELL")) return "bg-red-500/15 text-red-400 border-red-500/30";
+    return "bg-blue-500/15 text-blue-400 border-blue-500/30";
+  };
+
   return (
     <div className="min-h-screen text-zinc-100 p-6 relative">
-      {/* Background Gradients (Optional enhancement for depth) */}
+      {/* Background */}
       <div className="fixed inset-0 pointer-events-none z-[-1]">
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-900/10 rounded-full blur-[120px]" />
         <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-900/10 rounded-full blur-[120px]" />
@@ -285,187 +131,211 @@ export function DashboardPage() {
             Stock Analytics Dashboard
           </h1>
           <p className="text-zinc-400 text-lg">
-            Real-time NSE stock analysis with AI predictions
+            Real-time NSE analysis powered by LSTM, HMM & AI Agents
           </p>
         </div>
 
         {/* Stock Search */}
         <div className="relative z-10">
-          <StockInput onSearch={handleSearch} disabled={isLoading} />
+          <StockInput onSearch={handleSearch} disabled={isLoading || isV2Loading} />
         </div>
 
         {/* Market Context */}
         <MarketContextStrip />
 
-        {/* Offline Mode Indicator */}
-        {isOfflineMode && (
-          <div className="bg-amber-500/10 border border-amber-500/20 text-amber-500 p-4 rounded-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
-            <AlertCircle className="size-5 shrink-0" />
-            <div className="flex flex-col">
-              <p className="text-sm font-medium text-amber-200">
-                Live data temporarily unavailable
+        {/* Live Price Banner */}
+        {(livePrice > 0) && (
+          <div className="border-l-[6px] border-l-[#3A6FF8] bg-[rgba(15,23,42,0.4)] backdrop-blur-xl p-6 rounded-r-xl shadow-lg shadow-blue-900/5 flex items-center justify-between border-y border-r border-y-[#3A6FF8]/10 border-r-[#3A6FF8]/10">
+            <div>
+              <p className="text-sm text-zinc-400 font-medium uppercase tracking-wider mb-1">
+                Currently Viewing
               </p>
-              <p className="text-xs text-amber-500/80">
-                System has switched to offline demo mode. Showing simulated
-                data.
+              <div className="flex items-baseline gap-3">
+                <p className="text-3xl font-bold text-zinc-100">
+                  {selectedStock}
+                </p>
+                <p className="text-sm text-zinc-500 hidden md:block">
+                  {stockData?.companyName || `${selectedStock}.NS`}
+                </p>
+              </div>
+            </div>
+            <div className="text-right">
+              <p className="text-3xl font-bold text-zinc-100">
+                ₹{livePrice.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+              </p>
+              <p className={`text-sm font-medium flex items-center justify-end gap-1 ${isPositive ? "text-emerald-400" : "text-red-400"}`}>
+                {isPositive ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
+                {isPositive ? "+" : ""}₹{dayChange.toFixed(2)} ({isPositive ? "+" : ""}{dayChangePct.toFixed(2)}%)
               </p>
             </div>
           </div>
         )}
 
-        {/* Loading Overlay or Content */}
-        {isLoading && !stockData ? (
+        {/* Loading state */}
+        {isLoading && !stockData && !v2Data ? (
           <div className="h-[400px] flex flex-col items-center justify-center rounded-2xl border border-dashed border-zinc-800 bg-zinc-900/20">
             <Loader2 className="size-8 text-[#5B8DFF] animate-spin mb-4" />
             <p className="text-zinc-500">Fetching live market data...</p>
           </div>
         ) : (
-          stockData && (
-            <>
-              {/* Current Stock Info */}
-              <div className="border-l-[6px] border-l-[#3A6FF8] bg-[rgba(15,23,42,0.4)] backdrop-blur-xl p-6 rounded-r-xl shadow-lg shadow-blue-900/5 flex items-center justify-between border-y border-r border-y-[#3A6FF8]/10 border-r-[#3A6FF8]/10">
+          <>
+            {/* Chart */}
+            {chartData.length > 0 && (
+              <StockChart data={chartData} stockName={selectedStock} />
+            )}
+
+            {/* ============================================================== */}
+            {/* AI ANALYSIS ENGINE — The Main Event */}
+            {/* ============================================================== */}
+            <div className="mt-4">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="p-2 rounded-xl bg-[#3A6FF8]/10 border border-[#3A6FF8]/20">
+                  <Brain className="size-5 text-[#5B8DFF]" />
+                </div>
                 <div>
-                  <p className="text-sm text-zinc-400 font-medium uppercase tracking-wider mb-1">
-                    Currently Viewing
-                  </p>
-                  <div className="flex items-baseline gap-3">
-                    <p className="text-3xl font-bold text-zinc-100">
-                      {stockData.symbol}
-                    </p>
-                    <p className="text-sm text-zinc-500 hidden md:block">
-                      {stockData.companyName}
-                    </p>
-                  </div>
+                  <h2 className="text-xl font-semibold text-zinc-100">AI Analysis Engine</h2>
+                  <p className="text-xs text-zinc-500">LSTM Neural Network • HMM Regime Detection • Multi-Agent Debate</p>
                 </div>
-                <div className="text-right">
-                  <div className="p-2 rounded-lg bg-[#3A6FF8]/10 border border-[#3A6FF8]/20 inline-block mb-1">
-                    <span className="text-xs font-mono text-[#5B8DFF]">
-                      NSE:EQ
-                    </span>
-                  </div>
-                  <p className="text-xs text-zinc-500">
-                    {stockData.marketState}
-                  </p>
-                </div>
+                {v2Data && (
+                  <span className={`ml-auto text-sm font-bold px-4 py-1.5 rounded-full border ${getVerdictConfig(v2Data.details.war_room.verdict)}`}>
+                    {v2Data.details.war_room.verdict}
+                  </span>
+                )}
               </div>
 
-              {/* Stock Metrics */}
-              <StockMetrics
-                currentPrice={stockData.currentPrice}
-                change={stockData.change}
-                changePercent={stockData.changePercent}
-                volume={stockData.volumeFormatted}
-                marketCap={stockData.marketCapFormatted}
-              />
-
-              {/* Main Content Grid */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Top Row: AI Prediction & Chart (Chart takes more space) */}
-
-                {/* Left: AI Prediction Card (High Priority Signal) */}
-                <div className="lg:col-span-1 space-y-6">
-                  <AIPredictionCard data={aiData} isLoading={isLoading} />
-
-                  {/* Visual Disclaimer (New) */}
-                  <div className="p-4 rounded-xl border border-dashed border-zinc-700 bg-zinc-900/30 text-center">
-                    <p className="text-xs text-zinc-500 leading-relaxed">
-                      <span className="text-[#3A6FF8] font-medium">
-                        Demo Mode:
-                      </span>{" "}
-                      Charts and metrics are simulated for demonstration.
-                      Prediction confidence is illustrative.
-                    </p>
-                  </div>
+              {isV2Loading ? (
+                <div className="h-[250px] flex flex-col items-center justify-center rounded-2xl border border-dashed border-zinc-800 bg-zinc-900/20">
+                  <Loader2 className="size-8 text-[#5B8DFF] animate-spin mb-4" />
+                  <p className="text-zinc-400 font-medium">Running AI Pipeline...</p>
+                  <p className="text-zinc-600 text-xs mt-1">LSTM → HMM → Agent Debate (~15-30s)</p>
                 </div>
+              ) : v2Data ? (
+                <div className="space-y-5">
+                  {/* Signal Cards Row */}
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    {/* LSTM Signal */}
+                    {(() => {
+                      const cfg = getSignalConfig(v2Data.ai_signal);
+                      const Icon = cfg.icon;
+                      return (
+                        <div className={`${cfg.bg} border ${cfg.border} p-5 rounded-2xl`}>
+                          <div className="flex items-center gap-2 text-zinc-400 mb-3">
+                            <TrendingUp size={15} />
+                            <span className="text-[10px] uppercase tracking-widest font-semibold">LSTM Signal</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Icon size={20} className={cfg.color} />
+                            <span className={`text-xl font-bold ${cfg.color}`}>{v2Data.ai_signal}</span>
+                          </div>
+                          <p className="text-xs text-zinc-500 mt-1">Probability: {v2Data.confidence}</p>
+                        </div>
+                      );
+                    })()}
 
-                {/* Right: Chart (Primary Visualization) */}
-                <div className="lg:col-span-2">
-                  <StockChart data={chartData} stockName={stockData.symbol} />
-                </div>
+                    {/* Market Regime */}
+                    <div className="bg-[rgba(15,23,42,0.4)] backdrop-blur-xl p-5 rounded-2xl border border-white/5">
+                      <div className="flex items-center gap-2 text-zinc-400 mb-3">
+                        <BarChart2 size={15} />
+                        <span className="text-[10px] uppercase tracking-widest font-semibold">Regime (HMM)</span>
+                      </div>
+                      <p className={`text-xl font-bold ${v2Data.regime.includes("Bull") ? "text-emerald-400" :
+                          v2Data.regime.includes("Bear") ? "text-red-400" : "text-blue-400"
+                        }`}>{v2Data.regime}</p>
+                      <p className="text-xs text-zinc-500 mt-1">
+                        Confidence: {(v2Data.details.regime_detection.confidence * 100).toFixed(0)}%
+                      </p>
+                    </div>
 
-                {/* Bottom Row: Secondary Analysis (Technical + News) */}
-                <div className="lg:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-6 mt-2">
-                  {/* Technical Sentiment (Secondary) */}
-                  <div className="space-y-3">
-                    <h3 className="text-sm font-medium text-zinc-400 uppercase tracking-wider pl-1">
-                      Technical Signal
-                    </h3>
-                    <div className="bg-[rgba(15,23,42,0.3)] p-1 rounded-2xl border border-white/5 h-full">
-                      <SentimentIndicator
-                        sentiment={
-                          aiData?.prediction.direction === "UP"
-                            ? "positive"
-                            : aiData?.prediction.direction === "DOWN"
-                              ? "negative"
-                              : "neutral"
-                        }
-                      />
-                      <div className="p-4 text-xs text-zinc-500">
-                        Technical indicators suggest a momentum shift consistent
-                        with the AI prediction model.
+                    {/* India VIX */}
+                    <div className="bg-[rgba(15,23,42,0.4)] backdrop-blur-xl p-5 rounded-2xl border border-white/5">
+                      <div className="flex items-center gap-2 text-zinc-400 mb-3">
+                        <Shield size={15} />
+                        <span className="text-[10px] uppercase tracking-widest font-semibold">India VIX</span>
+                      </div>
+                      <p className={`text-xl font-bold ${v2Data.vix > 22 ? "text-red-400" : v2Data.vix > 16 ? "text-yellow-400" : "text-emerald-400"}`}>
+                        {v2Data.vix.toFixed(1)}
+                      </p>
+                      <p className="text-xs text-zinc-500 mt-1">
+                        {v2Data.vix > 22 ? "⚠️ High fear" : v2Data.vix > 16 ? "⚡ Moderate" : "✅ Calm"}
+                      </p>
+                    </div>
+
+                    {/* Technical Snapshot */}
+                    <div className="bg-[rgba(15,23,42,0.4)] backdrop-blur-xl p-5 rounded-2xl border border-white/5">
+                      <div className="flex items-center gap-2 text-zinc-400 mb-3">
+                        <Activity size={15} />
+                        <span className="text-[10px] uppercase tracking-widest font-semibold">Technicals</span>
+                      </div>
+                      <div className="space-y-1.5">
+                        <div className="flex justify-between text-xs">
+                          <span className="text-zinc-500">RSI</span>
+                          <span className={`font-semibold ${v2Data.details.lstm.features.rsi > 70 ? "text-red-400" :
+                              v2Data.details.lstm.features.rsi < 30 ? "text-emerald-400" : "text-zinc-300"
+                            }`}>{v2Data.details.lstm.features.rsi?.toFixed(1) ?? "—"}</span>
+                        </div>
+                        <div className="flex justify-between text-xs">
+                          <span className="text-zinc-500">MACD</span>
+                          <span className={`font-semibold ${v2Data.details.lstm.features.macd > 0 ? "text-emerald-400" : "text-red-400"
+                            }`}>{v2Data.details.lstm.features.macd?.toFixed(2) ?? "—"}</span>
+                        </div>
+                        <div className="flex justify-between text-xs">
+                          <span className="text-zinc-500">Boll %B</span>
+                          <span className="text-zinc-300 font-semibold">{v2Data.details.lstm.features.bollinger_pctb?.toFixed(2) ?? "—"}</span>
+                        </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* News Sentiment (Contextual/Low Weight) */}
-                  <div className="space-y-3">
-                    <h3 className="text-sm font-medium text-zinc-400 uppercase tracking-wider pl-1 flex justify-between items-center">
-                      <span>Market News Context</span>
-                      <span className="text-[10px] bg-zinc-800 text-zinc-400 px-2 py-0.5 rounded-full">
-                        Low Weight Signal
-                      </span>
-                    </h3>
-                    <NewsSentiment symbol={selectedStock} />
-                  </div>
-                </div>
-
-                {/* Deep Dive Analysis Section - Agentic Ensemble */}
-                <div className="lg:col-span-3 mt-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <h2 className="text-lg font-semibold text-zinc-100">
-                        Deep Dive Analysis
-                      </h2>
-                      <p className="text-xs text-zinc-500">
-                        Multi-Agent Ensemble Prediction System
+                  {/* Agents Status (if offline) */}
+                  {v2Data.details.war_room.error && (
+                    <div className="flex items-center gap-3 bg-amber-500/5 border border-amber-500/15 p-3 rounded-xl">
+                      <AlertCircle className="size-4 text-amber-400 shrink-0" />
+                      <p className="text-xs text-amber-400/80">
+                        AI agents temporarily offline (quota exceeded). Showing real LSTM + HMM analysis.
                       </p>
                     </div>
-                    <button
-                      onClick={handleShockToggle}
-                      className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all border ${
-                        shockActive
-                          ? "bg-red-500/10 border-red-500 text-red-400 shadow-[0_0_15px_rgba(239,68,68,0.2)]"
-                          : "bg-[#3A6FF8]/10 border-[#3A6FF8]/50 text-[#5B8DFF] hover:bg-[#3A6FF8]/20"
-                      }`}
-                    >
-                      <Zap
-                        className={`size-4 ${shockActive ? "animate-pulse" : ""}`}
-                      />
-                      {shockActive
-                        ? "Stop Simulation"
-                        : "Simulate Market Shock"}
-                    </button>
-                  </div>
-                  <PredictionEnsembleCard
-                    data={ensembleData}
-                    isLoading={isEnsembleLoading}
-                    shockActive={shockActive}
-                    onRefresh={() =>
-                      loadEnsembleData(selectedStock, shockActive)
-                    }
-                  />
-                </div>
-              </div>
-            </>
-          )
-        )}
+                  )}
 
-        {/* Footer */}
-        <div className="mt-8 pt-6 border-t border-[rgba(100,150,255,0.1)]">
-          <p className="text-center text-[10px] text-zinc-500 uppercase tracking-widest">
-            QuantPulse India • AI-Powered Analytics • {new Date().getFullYear()}
-          </p>
-        </div>
+                  {/* Investment Memo */}
+                  <div className="bg-[rgba(15,23,42,0.4)] backdrop-blur-xl p-6 lg:p-8 rounded-2xl border border-white/5">
+                    <div className="flex items-center gap-2 mb-5">
+                      <FileText size={16} className="text-[#5B8DFF]" />
+                      <h3 className="text-sm font-semibold text-zinc-200 uppercase tracking-wider">Investment Memo</h3>
+                    </div>
+                    <div className="prose prose-invert prose-sm max-w-none
+                      prose-headings:text-blue-400 prose-headings:font-semibold prose-headings:mt-6 prose-headings:mb-3
+                      prose-h2:text-lg prose-h3:text-base
+                      prose-strong:text-emerald-400
+                      prose-p:text-zinc-300 prose-p:leading-relaxed
+                      prose-li:text-zinc-300
+                      prose-table:border-collapse prose-table:w-full
+                      prose-th:bg-zinc-800/50 prose-th:text-zinc-300 prose-th:text-left prose-th:px-4 prose-th:py-2 prose-th:text-xs prose-th:uppercase prose-th:tracking-wider prose-th:border prose-th:border-zinc-700/50
+                      prose-td:text-zinc-300 prose-td:px-4 prose-td:py-2 prose-td:border prose-td:border-zinc-700/30
+                      prose-hr:border-zinc-700/30
+                    ">
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{v2Data.final_report}</ReactMarkdown>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="p-8 rounded-2xl border border-dashed border-zinc-800 bg-zinc-900/20 text-center">
+                  <AlertCircle className="size-8 text-zinc-600 mx-auto mb-3" />
+                  <p className="text-zinc-500 text-sm">V2 Analysis unavailable. Check backend connection.</p>
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="mt-8 pt-6 border-t border-[rgba(100,150,255,0.1)]">
+              <p className="text-center text-[10px] text-zinc-500 uppercase tracking-widest">
+                QuantPulse India • AI-Powered Analytics • {new Date().getFullYear()}
+              </p>
+              <p className="text-center text-[9px] text-zinc-600 mt-1">
+                ⚠️ Not financial advice. Educational purposes only.
+              </p>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
