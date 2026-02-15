@@ -33,22 +33,62 @@ _SCALER = None
 
 HF_REPO_ID = "joy1511/QuantPulse-Models"
 
+
+def _build_model():
+    """
+    Build the LSTM model architecture in code.
+    This is version-independent — no Keras serialization needed.
+
+    Architecture (matches training script):
+      Input(60, 6) → BiLSTM(64, seq=True) → BN → Drop(0.3)
+                    → BiLSTM(64, seq=False) → BN → Drop(0.3)
+                    → Dense(32, relu) → Drop(0.2) → Dense(1, sigmoid)
+    """
+    import tensorflow as tf
+
+    model = tf.keras.Sequential([
+        tf.keras.layers.Input(shape=(60, 6)),
+        tf.keras.layers.Bidirectional(
+            tf.keras.layers.LSTM(64, return_sequences=True)
+        ),
+        tf.keras.layers.BatchNormalization(),
+        tf.keras.layers.Dropout(0.3),
+        tf.keras.layers.Bidirectional(
+            tf.keras.layers.LSTM(64, return_sequences=False)
+        ),
+        tf.keras.layers.BatchNormalization(),
+        tf.keras.layers.Dropout(0.3),
+        tf.keras.layers.Dense(32, activation="relu"),
+        tf.keras.layers.Dropout(0.2),
+        tf.keras.layers.Dense(1, activation="sigmoid"),
+    ])
+    return model
+
+
 def _load_model():
-    """Download model files from Hugging Face and load them. Called once at startup."""
+    """Download model weights from Hugging Face, build architecture, load weights."""
     global _MODEL, _SCALER
 
     try:
         from huggingface_hub import hf_hub_download
         from app.config import HF_TOKEN
 
-        token = HF_TOKEN  # None for public repos, set for private
+        token = HF_TOKEN
 
-        logger.info(f"📥 Downloading LSTM model from Hugging Face ({HF_REPO_ID})...")
-        model_path = hf_hub_download(repo_id=HF_REPO_ID, filename="universal_lstm.keras", token=token)
-        logger.info(f"✅ Model downloaded to: {model_path}")
+        logger.info(f"📥 Downloading LSTM weights from Hugging Face ({HF_REPO_ID})...")
+        weights_path = hf_hub_download(
+            repo_id=HF_REPO_ID,
+            filename="universal_lstm.weights.h5",
+            token=token
+        )
+        logger.info(f"✅ Weights downloaded to: {weights_path}")
 
         logger.info(f"📥 Downloading scaler from Hugging Face ({HF_REPO_ID})...")
-        scaler_path = hf_hub_download(repo_id=HF_REPO_ID, filename="universal_scaler.pkl", token=token)
+        scaler_path = hf_hub_download(
+            repo_id=HF_REPO_ID,
+            filename="universal_scaler.pkl",
+            token=token
+        )
         logger.info(f"✅ Scaler downloaded to: {scaler_path}")
 
     except Exception as e:
@@ -62,14 +102,14 @@ def _load_model():
         return
 
     try:
-        # Suppress TensorFlow warnings during import
         os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
         import tensorflow as tf
         tf.get_logger().setLevel("ERROR")
 
-        logger.info(f"🧠 Loading LSTM model...")
-        _MODEL = tf.keras.models.load_model(model_path, compile=False)
-        logger.info(f"✅ LSTM model loaded: input_shape={_MODEL.input_shape}")
+        logger.info(f"🧠 Building LSTM architecture and loading weights...")
+        _MODEL = _build_model()
+        _MODEL.load_weights(weights_path)
+        logger.info(f"✅ LSTM model ready: input_shape={_MODEL.input_shape}")
 
         logger.info(f"📏 Loading scaler...")
         _SCALER = joblib.load(scaler_path)
