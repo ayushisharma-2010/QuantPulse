@@ -15,23 +15,35 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from crewai import Agent, Task, Crew, Process, LLM
-from crewai_tools import SerperDevTool
+
+# Graceful import — crewai-tools may be incompatible with pinned crewai version
+try:
+    from crewai_tools import SerperDevTool
+    _SERPER_AVAILABLE = True
+except (ImportError, Exception) as e:
+    SerperDevTool = None
+    _SERPER_AVAILABLE = False
+    print(f"⚠️  crewai_tools import failed (SerperDevTool unavailable): {e}")
+    print("   War Room will run without search capabilities.")
 
 logger = logging.getLogger(__name__)
-logger.info("✅ CrewAI + LLM + SerperDev imported successfully")
+if _SERPER_AVAILABLE:
+    logger.info("✅ CrewAI + LLM + SerperDev imported successfully")
+else:
+    logger.warning("⚠️ CrewAI + LLM imported, SerperDev unavailable")
 
 # =============================================================================
-# Validate API Keys at import time — crash loud if missing
+# Validate API Keys at import time — warn if missing, don't crash
 # =============================================================================
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 SERPER_API_KEY = os.getenv("SERPER_API_KEY")
 
 if not GOOGLE_API_KEY:
-    raise RuntimeError("❌ GOOGLE_API_KEY not found. Add it to .env.")
+    logger.error("❌ GOOGLE_API_KEY not found. War Room agents will fail.")
 if not SERPER_API_KEY:
-    raise RuntimeError("❌ SERPER_API_KEY not found. Add it to .env.")
+    logger.warning("⚠️ SERPER_API_KEY not found. Search tool disabled.")
 
-logger.info("✅ API keys verified (GOOGLE_API_KEY, SERPER_API_KEY)")
+logger.info("✅ API key check complete")
 
 
 # =============================================================================
@@ -93,8 +105,14 @@ def _execute_crew(
         temperature=0.2,
     )
 
-    # ---- Tool (only for Fundamentalist) ----
-    search_tool = SerperDevTool(api_key=os.getenv("SERPER_API_KEY", ""))
+    # ---- Tool (only for Fundamentalist, if available) ----
+    search_tool = None
+    if _SERPER_AVAILABLE and SerperDevTool and SERPER_API_KEY:
+        try:
+            search_tool = SerperDevTool(api_key=os.getenv("SERPER_API_KEY", ""))
+        except Exception as e:
+            logger.warning(f"⚠️ SerperDevTool init failed: {e}")
+            search_tool = None
 
     # ---- Extract data for prompts ----
     lstm_prob = lstm_result.get("probability", 0.5)
@@ -120,7 +138,7 @@ def _execute_crew(
             "You read The Economic Times, Moneycontrol, and Bloomberg every morning. "
             "You never ignore VIX — above 22 means the market is scared."
         ),
-        tools=[search_tool],
+        tools=[search_tool] if search_tool else [],
         llm=llm,
         verbose=False,
         allow_delegation=False,
