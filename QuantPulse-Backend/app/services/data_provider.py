@@ -75,15 +75,19 @@ def _download_safe(ticker: str, period: str = "2y"):
     """
     try:
         logger.info(f"📥 Downloading {ticker} ({period})...")
-        data = yf.download(ticker, period=period, progress=False, auto_adjust=True)
+        data = yf.download(
+            ticker, period=period, progress=False,
+            auto_adjust=True, multi_level_columns=False,
+        )
+
+        # Flatten MultiIndex columns if present (yfinance >= 0.2.36 returns
+        # MultiIndex even for single tickers unless multi_level_columns=False)
+        if isinstance(data.columns, pd.MultiIndex):
+            data.columns = data.columns.get_level_values(0)
 
         if data is None or data.empty:
             logger.warning(f"⚠️ No data returned for {ticker}")
             return None
-
-        # Flatten MultiIndex columns if present (yfinance sometimes returns multi-level)
-        if isinstance(data.columns, pd.MultiIndex):
-            data.columns = data.columns.get_level_values(0)
 
         logger.info(f"✅ Got {len(data)} rows for {ticker}")
         return data
