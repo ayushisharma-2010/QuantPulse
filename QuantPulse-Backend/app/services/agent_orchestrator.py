@@ -10,13 +10,16 @@ import traceback
 os.environ["CREWAI_DISABLE_TELEMETRY"] = "true"
 os.environ["OTEL_SDK_DISABLED"] = "true"
 
+# ---- LiteLLM Optimization: Prevent slow remote fetch of cost map ----
+os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
+
+from dotenv import load_dotenv
+load_dotenv()
+
 # Bridge GOOGLE_API_KEY → GEMINI_API_KEY for LiteLLM's gemini/ provider
 _gkey = os.getenv("GOOGLE_API_KEY", "")
 if _gkey:
     os.environ["GEMINI_API_KEY"] = _gkey
-
-from dotenv import load_dotenv
-load_dotenv()
 
 # NOTE: crewai imports are DEFERRED to _execute_crew() to avoid blocking
 # uvicorn port binding on Render. CrewAI pulls in chromadb, litellm,
@@ -36,7 +39,7 @@ if not SERPER_API_KEY:
     logger.warning("⚠️ SERPER_API_KEY not found. Search tool disabled.")
 
 logger.info("✅ API key check complete")
-
+# ... (existing imports)
 
 # =============================================================================
 # THE WAR ROOM — Zero-Fail Entry Point
@@ -58,9 +61,10 @@ def run_war_room(
     - NEVER raises an exception. NEVER returns a 500.
     """
 
-    # Phase A: Mandatory cooldown — Free Tier quota reset
-    logger.info("⏳ Phase A: 15s cooldown for Free Tier quota reset...")
-    time.sleep(15)
+    # Phase A: Minimal buffer (reduced from 15s to 1s to prevent timeouts)
+    # Gemini 2.0 Flash is fast enough; we rely on resilience rather than waiting.
+    logger.info("⏳ Phase A: Initializing War Room...")
+    time.sleep(1)
 
     try:
         # Phase B: Run the crew
