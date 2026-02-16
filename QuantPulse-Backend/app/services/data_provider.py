@@ -16,6 +16,9 @@ from functools import lru_cache, wraps
 import yfinance as yf
 import pandas as pd
 
+import asyncio
+from app.providers.provider_factory import ProviderFactory
+
 logger = logging.getLogger(__name__)
 
 # =============================================================================
@@ -68,10 +71,63 @@ def normalize_ticker(ticker: str) -> str:
 # Core Data Fetching
 # =============================================================================
 
-def _download_safe(ticker: str, period: str = "2y"):
+async def _fetch_from_provider_fallback(ticker: str, period: str = "2y") -> pd.DataFrame | None:
     """
-    Safely download data from yfinance with error handling.
-    Returns None on failure instead of crashing.
+    Fallback: Fetch historical data from TwelveData/Finnhub via ProviderFactory.
+    Converts the result to a pandas DataFrame matching yfinance structure.
+    """
+    try:
+        # Indices (starts with ^) might not be supported by stock providers simply
+        if ticker.startswith("^"):
+            return None
+
+        # Remove .NS suffix for provider lookup if needed (providers handle suffix internally)
+        clean_symbol = ticker.replace(".NS", "")
+        
+        logger.info(f"🔄 Fallback: Fetching {clean_symbol} from active provider...")
+        provider = ProviderFactory.get_provider()
+        
+        # Calculate period (approximate 2y as "2y" or "104w" etc depending on provider logic)
+        # But get_historical_data takes "1mo", "1y", etc.
+        # calls are async
+        historical = await provider.get_historical_data(clean_symbol, period=period)
+        
+        if not historical or not historical.data:
+            logger.warning(f"⚠️ Provider returned no data for {ticker}")
+            return None
+            
+        # Convert list of dicts to DataFrame
+        df = pd.DataFrame(historical.data)
+        
+        # Standardize columns to match yfinance: Date, Open, High, Low, Close, Volume
+        df["Date"] = pd.to_datetime(df["date"])
+        df.set_index("Date", inplace=True)
+        df.drop(columns=["date"], inplace=True)
+        
+        # Rename lower case to Title Case
+        df.rename(columns={
+            "open": "Open", 
+            "high": "High", 
+            "low": "Low", 
+            "close": "Close", 
+            "volume": "Volume"
+        }, inplace=True)
+        
+        # Ensure numeric
+        cols = ["Open", "High", "Low", "Close", "Volume"]
+        for col in cols:
+            df[col] = pd.to_numeric(df[col], errors='coerce')
+            
+        logger.info(f"✅ Fallback success: {len(df)} rows for {ticker} via {provider.provider_name}")
+        return df
+
+    except Exception as e:
+        logger.error(f"❌ Fallback failed for {ticker}: {e}")
+        return None
+
+def _download_safe_sync(ticker: str, period: str = "2y"):
+    """
+    Synchronous wrapper for yfinance download (since yfinance is sync).
     """
     try:
         logger.info(f"📥 Downloading {ticker} ({period})...")
@@ -80,50 +136,107 @@ def _download_safe(ticker: str, period: str = "2y"):
         )
 
         # yfinance >= 0.2.36 returns MultiIndex columns even for single tickers
-        # e.g. columns = [("Close", "RELIANCE.NS"), ("Open", "RELIANCE.NS"), ...]
-        # We need to flatten to ["Close", "Open", ...] for downstream code
         if isinstance(data.columns, pd.MultiIndex):
             data.columns = data.columns.droplevel(1)
 
         if data is None or data.empty:
-            logger.warning(f"⚠️ No data returned for {ticker}")
+            logger.warning(f"⚠️ yfinance returned no data for {ticker}")
             return None
 
-        logger.info(f"✅ Got {len(data)} rows for {ticker}")
+        logger.info(f"✅ Got {len(data)} rows for {ticker} (yfinance)")
         return data
 
     except Exception as e:
-        logger.error(f"❌ Failed to download {ticker}: {e}")
+        logger.error(f"❌ yfinance failed for {ticker}: {e}")
         return None
+
+async def _get_data_async(ticker: str, period: str = "2y") -> pd.DataFrame | None:
+    """
+    Orchestrates data fetching: yfinance -> Fallback Provider
+    """
+    # 1. Try yfinance (sync, so we run it directly or in thread if needed, strict sync is fine here)
+    df = _download_safe_sync(ticker, period)
+    if df is not None and not df.empty:
+        return df
+        
+    # 2. Try Fallback Provider
+    return await _fetch_from_provider_fallback(ticker, period)
 
 
 @timed_lru_cache(seconds=300, maxsize=10)
-def fetch_market_context(ticker: str) -> dict:
+def fetch_market_context_sync_wrapper(ticker: str) -> dict:
     """
-    Fetch complete market context for analysis.
+    Async-to-Sync wrapper for LRU cache. 
+    Since lru_cache works on sync functions, and we need async fallback, 
+    we use asyncio.run() here. 
+    
+    WARNING: Nesting asyncio.run() inside a running loop is bad. 
+    But this function is called from a FastAPI endpoint which is async def? 
+    Wait, data_provider functions were synchronous before.
+    
+    Refactoring strategy:
+    - Make `fetch_market_context` async.
+    - Remove `@timed_lru_cache` (or provide async alternative).
+    - Update call sites (`v2_analysis.py`).
+    """
+    # For minimal regression, we'll implement a blocking call via asyncio.run 
+    # ONLY if we are not in a loop. But FastAPI runs on loop.
+    # Actually, yfinance is blocking. Provider is async.
+    
+    # Simpler approach: Use the sync HTTP client in fallback if possible? 
+    # No, providers use httpx.AsyncClient.
+    
+    # We must refactor fetch_market_context to be async.
+    # And check call sites.
+    pass 
 
+# Since we need to change the function signature to async, we can't use standard lru_cache easily.
+# We will use 'async-lru' or simple in-memory dict manual caching for now to avoid dependency hell.
+# Or just async def with no cache (cache is less critical than working).
+# Let's remove cache for now or implement a simple active_cache dict.
+
+_CONTEXT_CACHE = {} 
+
+async def fetch_market_context(ticker: str) -> dict:
+    """
+    Fetch complete market context for analysis (Async).
+    
     Downloads 2 years of daily data for:
     1. The target stock
     2. ^NSEI (Nifty 50) — for regime detection
     3. ^INDIAVIX (India VIX) — for risk assessment
-
+    
     Args:
         ticker: Stock symbol (e.g., "RELIANCE" or "RELIANCE.NS")
-
+        
     Returns:
         dict with keys: 'target_df', 'nifty_df', 'vix_df'
-        - target_df: DataFrame or None if ticker not found
-        - nifty_df: DataFrame or None if Nifty data unavailable
-        - vix_df: DataFrame or None if VIX data unavailable
     """
     ns_ticker = normalize_ticker(ticker)
+    
+    # Simple explicit cache check
+    cache_key = f"{ns_ticker}"
+    now = time.time()
+    if cache_key in _CONTEXT_CACHE:
+        entry = _CONTEXT_CACHE[cache_key]
+        if now < entry['expiry']:
+            logger.info(f"✨ Using cached context for {ns_ticker}")
+            return entry['data']
 
     logger.info(f"🔍 Fetching market context for {ns_ticker}...")
 
-    # Fetch all three datasets
-    target_df = _download_safe(ns_ticker, period="2y")
-    nifty_df = _download_safe("^NSEI", period="2y")
-    vix_df = _download_safe("^INDIAVIX", period="2y")
+    # Fetch all three datasets preferably in parallel
+    # target_df = await _get_data_async(ns_ticker, period="2y")
+    # nifty_df = await _get_data_async("^NSEI", period="2y")
+    # vix_df = await _get_data_async("^INDIAVIX", period="2y")
+    
+    results = await asyncio.gather(
+        _get_data_async(ns_ticker, period="2y"),
+        _get_data_async("^NSEI", period="2y"),
+        _get_data_async("^INDIAVIX", period="2y")
+    )
+    
+    target_df, nifty_df, vix_df = results
 
     # Log summary
     target_rows = len(target_df) if target_df is not None else 0
@@ -136,11 +249,19 @@ def fetch_market_context(ticker: str) -> dict:
         f"vix={vix_rows} rows"
     )
 
-    return {
+    data = {
         "target_df": target_df,
         "nifty_df": nifty_df,
         "vix_df": vix_df,
     }
+    
+    # Cache it
+    _CONTEXT_CACHE[cache_key] = {
+        'data': data,
+        'expiry': now + 300 # 5 mins
+    }
+
+    return data
 
 
 def get_current_vix_level(vix_df) -> float:
@@ -157,6 +278,6 @@ def get_current_vix_level(vix_df) -> float:
             logger.warning("⚠️ VIX DataFrame is empty, using default 15.0")
             return 15.0
         return float(vix_df["Close"].iloc[-1])
-    except (KeyError, IndexError, AttributeError):
-        logger.warning("⚠️ Could not extract VIX close, using default 15.0")
+    except (KeyError, IndexError, AttributeError) as e:
+        logger.warning(f"⚠️ Could not extract VIX close: {e}, using default 15.0")
         return 15.0

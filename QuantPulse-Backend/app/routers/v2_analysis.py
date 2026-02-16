@@ -54,12 +54,12 @@ async def analyze_ticker(ticker: str):
     logger.info(f"🚀 Starting V2 analysis pipeline for {ticker_clean}...")
 
     # =========================================================================
-    # PHASE 1: DATA — Fetch LIVE market context from yfinance
+    # PHASE 1: DATA — Fetch LIVE market context from yfinance (or fallback)
     # =========================================================================
     logger.info("📥 Phase 1: Fetching LIVE market data from yfinance...")
 
     try:
-        context = fetch_market_context(ticker_clean)
+        context = await fetch_market_context(ticker_clean)
     except Exception as e:
         logger.error(f"❌ Data fetch failed: {e}")
         raise HTTPException(status_code=502, detail=f"Failed to fetch market data: {str(e)}")
@@ -107,8 +107,8 @@ async def analyze_ticker(ticker: str):
     regime = regime_result.get("regime", "Sideways")
     logger.info(f"🌤️ Regime: {regime} (confidence: {regime_result.get('confidence', 0):.0%})")
 
-    # 2b. LSTM Neural Prediction
-    lstm_result = lstm_predict(ticker_clean)
+    # 2b. LSTM Neural Prediction (pass pre-fetched data)
+    lstm_result = lstm_predict(ticker_clean, target_df=target_df)
     ai_signal = lstm_result.get("signal", "Neutral")
     probability = lstm_result.get("probability", 0.5)
     features_summary = lstm_result.get("features_summary", {})

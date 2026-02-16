@@ -202,12 +202,12 @@ def calculate_features(df: pd.DataFrame) -> pd.DataFrame:
 # Prediction Inference
 # =============================================================================
 
-def predict(ticker: str) -> dict:
+def predict(ticker: str, target_df: pd.DataFrame = None) -> dict:
     """
     Run LSTM inference for a given stock ticker.
 
     Process:
-    1. Fetch live data via data_provider
+    1. Validate / Fetch live data (target_df must be provided)
     2. Engineer 6 features
     3. Take last 60 rows, scale, reshape to (1, 60, 6)
     4. Run model.predict()
@@ -215,6 +215,8 @@ def predict(ticker: str) -> dict:
 
     Args:
         ticker: Stock symbol (e.g., "RELIANCE")
+        target_df: Pre-fetched market data (Open, High, Low, Close, Volume)
+                   If None, returns error (no internal fetching to avoid async issues).
 
     Returns:
         dict with keys:
@@ -230,16 +232,12 @@ def predict(ticker: str) -> dict:
             "features_summary": {},
         }
 
-    # Step 1: Fetch live data
-    from app.services.data_provider import fetch_market_context
-    context = fetch_market_context(ticker)
-    target_df = context["target_df"]
-
+    # Step 1: Use provided data
     if target_df is None or target_df.empty:
         return {
             "probability": 0.5,
             "signal": "Neutral",
-            "error": f"No market data available for {ticker}",
+            "error": f"No market data provided for {ticker}",
             "features_summary": {},
         }
 
