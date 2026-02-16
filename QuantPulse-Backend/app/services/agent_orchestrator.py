@@ -66,6 +66,13 @@ def run_war_room(
     logger.info("⏳ Phase A: Initializing War Room...")
     time.sleep(1)
 
+    # ---- PRODUCTION OPTIMIZATION (Render) ----
+    # If on Render, skip heavy agents to prevent timeouts and reliable response.
+    # User requested "Simulation Mode" for Production.
+    if os.getenv("RENDER") or os.getenv("FORCE_SIMULATION_MODE"):
+        logger.info("🚀 Production Mode Detected: Skipping heavy AI Agents for speed.")
+        return _build_fallback_memo(ticker, lstm_result, regime_result, vix_level, features_summary)
+
     try:
         # Phase B: Run the crew
         return _execute_crew(ticker, lstm_result, regime_result, vix_level, features_summary)
