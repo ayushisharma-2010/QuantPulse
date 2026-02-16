@@ -12,7 +12,9 @@ Includes TTL-based LRU caching to prevent Yahoo rate-limiting.
 import time
 import logging
 from functools import lru_cache, wraps
+from datetime import datetime, timedelta
 
+import numpy as np
 import yfinance as yf
 import pandas as pd
 
@@ -150,17 +152,83 @@ def _download_safe_sync(ticker: str, period: str = "2y"):
         logger.error(f"❌ yfinance failed for {ticker}: {e}")
         return None
 
+# =============================================================================
+# Synthetic Data Simulation (Final Fail-Safe)
+# =============================================================================
+
+def _generate_synthetic_data(ticker: str, period: str = "2y") -> pd.DataFrame:
+    """
+    Generate realistic synthetic OHLCV data if all APIs fail.
+    Used to ensure the application remains functional (Demo/Simulation Mode).
+    """
+    logger.warning(f"⚠️ Generating SYNTHETIC data for {ticker} (All APIs failed)")
+    
+    # Deterministic random seed based on ticker characters so it's consistent per session
+    seed_val = sum(ord(c) for c in ticker)
+    np.random.seed(int(time.time()) + seed_val) # Change every reload but stable for a moment
+    
+    # Determine number of days
+    days = 730 if "2y" in period else 365
+    
+    # Generate dates
+    end_date = datetime.now()
+    start_date = end_date - timedelta(days=days)
+    dates = pd.date_range(start=start_date, end=end_date, freq="D")
+    # Filter for weekdays only (approx mask)
+    dates = dates[dates.dayofweek < 5]
+    n = len(dates)
+    
+    # Random walk info
+    start_price = 2500.0 if "RELIANCE" in ticker else 15000.0 if "NSEI" in ticker else 15.0
+    if ticker.startswith("^INDIAVIX"):
+        start_price = 15.0
+        volatility = 0.05
+    else:
+        volatility = 0.02
+
+    # Generate returns
+    returns = np.random.normal(0.0005, volatility, n) # Slight upward drift
+    price_path = start_price * (1 + returns).cumprod()
+    
+    # Create OHLC
+    close = price_path
+    open_p = close * (1 + np.random.normal(0, 0.005, n))
+    high = np.maximum(open_p, close) * (1 + abs(np.random.normal(0, 0.005, n)))
+    low = np.minimum(open_p, close) * (1 - abs(np.random.normal(0, 0.005, n)))
+    volume = np.random.randint(100000, 5000000, n)
+    
+    df = pd.DataFrame({
+        "Open": open_p,
+        "High": high,
+        "Low": low,
+        "Close": close,
+        "Volume": volume
+    }, index=dates)
+    
+    # Ensure no NaN
+    df.fillna(method='ffill', inplace=True)
+    df.fillna(method='bfill', inplace=True)
+    
+    return df
+
 async def _get_data_async(ticker: str, period: str = "2y") -> pd.DataFrame | None:
     """
-    Orchestrates data fetching: yfinance -> Fallback Provider
+    Orchestrates data fetching: yfinance -> Fallback Provider -> Synthetic
     """
-    # 1. Try yfinance (sync, so we run it directly or in thread if needed, strict sync is fine here)
+    # 1. Try yfinance (sync)
     df = _download_safe_sync(ticker, period)
     if df is not None and not df.empty:
         return df
         
-    # 2. Try Fallback Provider
-    return await _fetch_from_provider_fallback(ticker, period)
+    # 2. Try Fallback Provider (skip for indices usually)
+    if not ticker.startswith("^"):
+        df = await _fetch_from_provider_fallback(ticker, period)
+        if df is not None and not df.empty:
+            return df
+            
+    # 3. FINAL FALLBACK: Synthetic Data
+    # The user explicitly requested "run it on simulated" if no data.
+    return _generate_synthetic_data(ticker, period)
 
 
 @timed_lru_cache(seconds=300, maxsize=10)
