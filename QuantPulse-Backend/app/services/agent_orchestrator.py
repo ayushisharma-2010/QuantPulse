@@ -6,6 +6,10 @@ import time
 import logging
 import traceback
 
+# ---- Disable CrewAI / OpenTelemetry telemetry (prints "Menu", may hang) ----
+os.environ["CREWAI_DISABLE_TELEMETRY"] = "true"
+os.environ["OTEL_SDK_DISABLED"] = "true"
+
 # Bridge GOOGLE_API_KEY → GEMINI_API_KEY for LiteLLM's gemini/ provider
 _gkey = os.getenv("GOOGLE_API_KEY", "")
 if _gkey:
@@ -14,23 +18,11 @@ if _gkey:
 from dotenv import load_dotenv
 load_dotenv()
 
-from crewai import Agent, Task, Crew, Process, LLM
-
-# Graceful import — crewai-tools may be incompatible with pinned crewai version
-try:
-    from crewai_tools import SerperDevTool
-    _SERPER_AVAILABLE = True
-except (ImportError, Exception) as e:
-    SerperDevTool = None
-    _SERPER_AVAILABLE = False
-    print(f"⚠️  crewai_tools import failed (SerperDevTool unavailable): {e}")
-    print("   War Room will run without search capabilities.")
+# NOTE: crewai imports are DEFERRED to _execute_crew() to avoid blocking
+# uvicorn port binding on Render. CrewAI pulls in chromadb, litellm,
+# opentelemetry (300+ deps) which takes 30-60s to import.
 
 logger = logging.getLogger(__name__)
-if _SERPER_AVAILABLE:
-    logger.info("✅ CrewAI + LLM + SerperDev imported successfully")
-else:
-    logger.warning("⚠️ CrewAI + LLM imported, SerperDev unavailable")
 
 # =============================================================================
 # Validate API Keys at import time — warn if missing, don't crash
@@ -96,6 +88,18 @@ def _execute_crew(
     features_summary: dict,
 ) -> dict:
 
+    # ---- Lazy import CrewAI (deferred from module level for fast startup) ----
+    from crewai import Agent, Task, Crew, Process, LLM
+
+    # Graceful import — crewai-tools may be incompatible
+    try:
+        from crewai_tools import SerperDevTool
+        _serper_available = True
+    except (ImportError, Exception) as e:
+        SerperDevTool = None
+        _serper_available = False
+        logger.warning(f"⚠️ crewai_tools import failed: {e}")
+
     # ---- LLM Brain (Native CrewAI → LiteLLM → Gemini) ----
     # gemini-2.0-flash-lite: highest free-tier quota (30 RPM).
     # Best choice for stable daily usage on Free Tier.
@@ -107,7 +111,7 @@ def _execute_crew(
 
     # ---- Tool (only for Fundamentalist, if available) ----
     search_tool = None
-    if _SERPER_AVAILABLE and SerperDevTool and SERPER_API_KEY:
+    if _serper_available and SerperDevTool and SERPER_API_KEY:
         try:
             search_tool = SerperDevTool(api_key=os.getenv("SERPER_API_KEY", ""))
         except Exception as e:

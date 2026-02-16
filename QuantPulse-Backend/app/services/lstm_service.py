@@ -123,8 +123,10 @@ def _load_model():
         logger.error(f"❌ CRITICAL: Model load failed after download: {e}")
 
 
-# Load on module import
-_load_model()
+def init():
+    """Public initializer — called from main.py startup event, NOT at import time.
+    This lets uvicorn bind the port FIRST, then loads TF + model weights."""
+    _load_model()
 
 
 # =============================================================================
