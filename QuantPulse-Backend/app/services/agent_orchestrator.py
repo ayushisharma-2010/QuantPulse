@@ -252,11 +252,13 @@ def _execute_crew(
     # =====================================================================
     logger.info(f"🏛️ War Room convening for {ticker}...")
 
+    # Disable memory to prevent ChromaDB/Embedding loading (heavy on Render)
     crew = Crew(
         agents=[fundamentalist, technician, risk_manager],
         tasks=[fundamental_task, technical_task, manager_task],
         process=Process.sequential,
         verbose=True,
+        memory=False, 
     )
 
     result = crew.kickoff()
