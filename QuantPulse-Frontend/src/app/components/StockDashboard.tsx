@@ -3,7 +3,10 @@ import axios from "axios";
 import ReactMarkdown from "react-markdown";
 import { Search, TrendingUp, AlertTriangle, Loader2, BarChart2 } from "lucide-react";
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
+const API_BASE = import.meta.env.VITE_API_BASE_URL ||
+    (window.location.hostname === "localhost"
+        ? "http://127.0.0.1:8000"
+        : "https://quantpulse-backend.onrender.com");
 
 interface V2AnalysisResponse {
     ticker: string;
