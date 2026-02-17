@@ -62,10 +62,10 @@ def run_war_room(
     time.sleep(1)
 
     # ---- PRODUCTION OPTIMIZATION (Render) ----
-    # If on Render, skip heavy agents to prevent timeouts and reliable response.
-    # User requested "Simulation Mode" for Production.
-    if os.getenv("RENDER") or os.getenv("FORCE_SIMULATION_MODE"):
-        logger.info("🚀 Production Mode Detected: Skipping heavy AI Agents for speed.")
+    # Only skip agents if FORCE_SIMULATION_MODE is explicitly set
+    # Removed automatic RENDER check to enable agents in production
+    if os.getenv("FORCE_SIMULATION_MODE") == "true":
+        logger.info("🚀 Simulation Mode: Skipping AI Agents (FORCE_SIMULATION_MODE=true)")
         return _build_fallback_memo(ticker, lstm_result, regime_result, vix_level, features_summary)
 
     try:
