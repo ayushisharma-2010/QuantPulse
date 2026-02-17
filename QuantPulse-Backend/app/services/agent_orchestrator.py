@@ -48,29 +48,52 @@ def run_war_room(
     features_summary: dict,
 ) -> dict:
     """
-    Run the multi-agent War Room debate.
+    Run the multi-agent War Room debate with timeout protection.
 
     ZERO-FAIL GUARANTEE:
     - If agents succeed → returns full AI Investment Memo
+    - If agents timeout (25s) → returns fallback memo with timeout notice
     - If agents fail → returns fallback memo from real LSTM + HMM data
     - NEVER raises an exception. NEVER returns a 500.
     """
 
-    # Phase A: Minimal buffer (reduced from 15s to 1s to prevent timeouts)
-    # Groq is ultra-fast; we rely on resilience rather than waiting.
+    # Phase A: Minimal buffer
     logger.info("⏳ Phase A: Initializing War Room...")
     time.sleep(1)
 
-    # ---- PRODUCTION OPTIMIZATION (Render) ----
+    # ---- PRODUCTION OPTIMIZATION ----
     # Only skip agents if FORCE_SIMULATION_MODE is explicitly set
-    # Removed automatic RENDER check to enable agents in production
     if os.getenv("FORCE_SIMULATION_MODE") == "true":
         logger.info("🚀 Simulation Mode: Skipping AI Agents (FORCE_SIMULATION_MODE=true)")
         return _build_fallback_memo(ticker, lstm_result, regime_result, vix_level, features_summary)
 
     try:
-        # Phase B: Run the crew
-        return _execute_crew(ticker, lstm_result, regime_result, vix_level, features_summary)
+        # Phase B: Run the crew with timeout protection
+        import signal
+        
+        def timeout_handler(signum, frame):
+            raise TimeoutError("War Room execution exceeded 25 seconds")
+        
+        # Set 25-second timeout (only on Unix systems)
+        if hasattr(signal, 'SIGALRM'):
+            signal.signal(signal.SIGALRM, timeout_handler)
+            signal.alarm(25)
+        
+        try:
+            result = _execute_crew(ticker, lstm_result, regime_result, vix_level, features_summary)
+            
+            # Cancel alarm if successful
+            if hasattr(signal, 'SIGALRM'):
+                signal.alarm(0)
+            
+            return result
+            
+        except TimeoutError:
+            logger.error("⏱️ War Room timeout (25s) - returning fallback memo")
+            result = _build_fallback_memo(ticker, lstm_result, regime_result, vix_level, features_summary)
+            result["error"] = "AI agents timed out (25s limit) - showing technical analysis"
+            return result
+            
     except Exception as e:
         # Phase C: Fail-safe — return fallback memo from REAL data
         error_msg = f"War Room failed: {type(e).__name__}: {e}"
@@ -80,6 +103,10 @@ def run_war_room(
         result = _build_fallback_memo(ticker, lstm_result, regime_result, vix_level, features_summary)
         result["error"] = error_msg
         return result
+    finally:
+        # Always cancel alarm
+        if hasattr(signal, 'SIGALRM'):
+            signal.alarm(0)
 
 
 # =============================================================================

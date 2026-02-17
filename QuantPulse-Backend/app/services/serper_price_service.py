@@ -31,7 +31,12 @@ class SerperPriceService:
     
     async def get_live_price(self, symbol: str) -> Optional[Dict[str, Any]]:
         """
-        Fetch live stock price from Google Search via Serper API.
+        Fetch live stock price from Moneycontrol stock quote page via Serper API.
+        
+        Strategy:
+        1. Search for EXACT Moneycontrol stock quote page URL
+        2. Only extract price from /india/stockpricequote/ pages
+        3. Validate price is from the correct stock page
         
         Args:
             symbol: Stock symbol (e.g., "RELIANCE", "TCS")
@@ -47,10 +52,11 @@ class SerperPriceService:
             # Clean symbol
             clean_symbol = symbol.strip().upper().replace(".NS", "")
             
-            # Search query for NSE stock price
-            query = f"{clean_symbol} NSE stock price live"
+            # Target EXACT Moneycontrol stock quote page
+            # Example: https://www.moneycontrol.com/india/stockpricequote/refineries/relianceindustries/RI
+            query = f"{clean_symbol} site:moneycontrol.com/india/stockpricequote"
             
-            logger.info(f"🔍 Fetching live price for {clean_symbol} via Serper API...")
+            logger.info(f"🔍 Fetching live price for {clean_symbol} from Moneycontrol stock quote page...")
             
             async with httpx.AsyncClient(timeout=10.0) as client:
                 response = await client.post(
@@ -68,139 +74,105 @@ class SerperPriceService:
                 
                 data = response.json()
                 
-                # Extract price from knowledge graph or organic results
-                price_data = self._extract_price_from_response(data, clean_symbol)
+                # Extract price ONLY from stockpricequote pages
+                price_data = self._extract_price_from_moneycontrol(data, clean_symbol)
                 
                 if price_data:
-                    logger.info(f"✅ Live price fetched for {clean_symbol}: ₹{price_data['price']}")
+                    logger.info(f"✅ Live price fetched for {clean_symbol}: ₹{price_data['price']} (Moneycontrol)")
                     return price_data
-                else:
-                    logger.warning(f"⚠️ Could not extract price for {clean_symbol} from Serper response")
-                    return None
+                
+                logger.warning(f"⚠️ Could not extract price for {clean_symbol} from Moneycontrol")
+                return None
                     
         except Exception as e:
             logger.error(f"Error fetching live price via Serper: {e}")
             return None
     
-    def _extract_price_from_response(self, data: Dict, symbol: str) -> Optional[Dict[str, Any]]:
+    def _extract_price_from_moneycontrol(self, data: Dict, symbol: str) -> Optional[Dict[str, Any]]:
         """
-        Extract stock price from Serper API response.
+        Extract stock price ONLY from Moneycontrol stock quote pages.
         
-        Tries multiple extraction strategies:
-        1. Knowledge Graph (Google Finance widget)
-        2. Organic results with price patterns (improved NSE-specific)
-        3. Answer box
+        Only accepts results from:
+        - moneycontrol.com/india/stockpricequote/
+        
+        This ensures we get the actual live stock price, not random numbers
+        from news articles or other pages.
         """
         try:
-            # Strategy 1: Knowledge Graph (most reliable)
-            if "knowledgeGraph" in data:
-                kg = data["knowledgeGraph"]
+            # Only check organic results
+            if "organic" not in data:
+                return None
+            
+            for result in data["organic"][:5]:  # Check first 5 results
+                link = result.get("link", "")
+                snippet = result.get("snippet", "")
+                title = result.get("title", "")
                 
-                # Look for price in various fields
-                price = None
-                change = None
-                change_pct = None
+                # CRITICAL: Only accept stockpricequote pages
+                if "/india/stockpricequote/" not in link:
+                    logger.debug(f"Skipping non-quote page: {link}")
+                    continue
                 
-                # Check attributes
-                if "attributes" in kg:
-                    for attr in kg["attributes"]:
-                        if "price" in attr.lower() or "₹" in str(attr):
-                            price_match = re.search(r'₹?\s*([\d,]+\.?\d*)', str(attr))
-                            if price_match:
-                                price = float(price_match.group(1).replace(',', ''))
+                # Verify the page is about the correct stock
+                # The symbol should appear in the title or snippet
+                if symbol.lower() not in title.lower() and symbol.lower() not in snippet.lower():
+                    logger.debug(f"Stock name mismatch in: {title}")
+                    continue
                 
-                # Check description
-                if not price and "description" in kg:
-                    price_match = re.search(r'₹\s*([\d,]+\.?\d*)', kg["description"])
+                logger.info(f"✅ Found Moneycontrol quote page: {link}")
+                
+                # Moneycontrol stock quote page patterns
+                # Example snippet: "Reliance Industries Ltd. ₹ 1,234.56 +12.34 (+1.01%)"
+                price_patterns = [
+                    r'₹\s*([\d,]+\.?\d*)',  # ₹ 1,234.56
+                    r'Rs\.?\s*([\d,]+\.?\d*)',  # Rs 1,234.56
+                    r'Price[:\s]+₹?\s*([\d,]+\.?\d*)',  # Price: 1,234.56
+                    r'Current Price[:\s]+₹?\s*([\d,]+\.?\d*)',  # Current Price: 1,234.56
+                ]
+                
+                for pattern in price_patterns:
+                    price_match = re.search(pattern, snippet, re.IGNORECASE)
                     if price_match:
-                        price = float(price_match.group(1).replace(',', ''))
-                
-                if price:
-                    return {
-                        "symbol": symbol,
-                        "price": price,
-                        "change": change,
-                        "change_percent": change_pct,
-                        "timestamp": datetime.now().isoformat(),
-                        "source": "serper_knowledge_graph"
-                    }
-            
-            # Strategy 2: Organic Results (IMPROVED for NSE)
-            if "organic" in data:
-                for result in data["organic"][:5]:  # Check first 5 results
-                    snippet = result.get("snippet", "")
-                    title = result.get("title", "")
-                    link = result.get("link", "")
-                    
-                    # Only trust results from reliable sources
-                    trusted_domains = ["moneycontrol.com", "nseindia.com", "bseindia.com", 
-                                     "google.com/finance", "investing.com", "tradingview.com"]
-                    if not any(domain in link for domain in trusted_domains):
-                        continue
-                    
-                    # Look for NSE-specific price patterns
-                    # Pattern 1: "₹2,950.50" or "Rs 2,950.50" or "INR 2950.50"
-                    # Pattern 2: "Price: 2,950.50" or "LTP: 2,950.50"
-                    price_patterns = [
-                        r'(?:₹|Rs\.?|INR)\s*([\d,]+\.?\d*)',  # Currency prefix
-                        r'(?:Price|LTP|Current Price):\s*₹?\s*([\d,]+\.?\d*)',  # Label prefix
-                        r'\b([\d,]+\.?\d*)\s*(?:₹|Rs|INR)\b',  # Currency suffix
-                    ]
-                    
-                    for pattern in price_patterns:
-                        price_match = re.search(pattern, snippet, re.IGNORECASE)
-                        if price_match:
-                            try:
-                                price = float(price_match.group(1).replace(',', ''))
-                                
-                                # Stricter validation for NSE stocks
-                                # Most NSE stocks are between ₹10 and ₹50,000
-                                if 10 <= price <= 50000:
-                                    # Try to extract change
-                                    change_match = re.search(r'([+-]?\d+\.?\d*)\s*\(([+-]?\d+\.?\d*)%\)', snippet)
-                                    change = None
-                                    change_pct = None
-                                    
-                                    if change_match:
-                                        change = float(change_match.group(1))
-                                        change_pct = float(change_match.group(2))
-                                    
-                                    logger.info(f"✅ Extracted price ₹{price} from {link}")
-                                    return {
-                                        "symbol": symbol,
-                                        "price": price,
-                                        "change": change,
-                                        "change_percent": change_pct,
-                                        "timestamp": datetime.now().isoformat(),
-                                        "source": f"serper_organic_{link.split('/')[2]}"
-                                    }
-                            except (ValueError, IndexError):
+                        try:
+                            price = float(price_match.group(1).replace(',', ''))
+                            
+                            # Strict validation: NSE stocks are typically ₹1 - ₹100,000
+                            if not (1 <= price <= 100000):
+                                logger.warning(f"Price {price} out of valid range, skipping")
                                 continue
-            
-            # Strategy 3: Answer Box
-            if "answerBox" in data:
-                answer = data["answerBox"].get("answer", "")
-                price_match = re.search(r'₹?\s*([\d,]+\.?\d*)', answer)
-                if price_match:
-                    try:
-                        price = float(price_match.group(1).replace(',', ''))
-                        if 10 <= price <= 50000:
+                            
+                            # Try to extract change and change percent
+                            change = None
+                            change_pct = None
+                            
+                            # Pattern: +12.34 (+1.01%) or -12.34 (-1.01%)
+                            change_match = re.search(r'([+-]?\d+\.?\d*)\s*\(([+-]?\d+\.?\d*)%\)', snippet)
+                            if change_match:
+                                try:
+                                    change = float(change_match.group(1))
+                                    change_pct = float(change_match.group(2))
+                                except ValueError:
+                                    pass
+                            
+                            logger.info(f"✅ Extracted price ₹{price} from Moneycontrol quote page")
                             return {
                                 "symbol": symbol,
                                 "price": price,
-                                "change": None,
-                                "change_percent": None,
+                                "change": change,
+                                "change_percent": change_pct,
                                 "timestamp": datetime.now().isoformat(),
-                                "source": "serper_answer_box"
+                                "source": "moneycontrol_stockquote",
+                                "url": link
                             }
-                    except ValueError:
-                        pass
+                        except (ValueError, IndexError) as e:
+                            logger.debug(f"Failed to parse price: {e}")
+                            continue
             
-            logger.warning(f"⚠️ No valid price found in Serper response for {symbol}")
+            logger.warning(f"⚠️ No valid price found in Moneycontrol stock quote pages")
             return None
             
         except Exception as e:
-            logger.error(f"Error extracting price from Serper response: {e}")
+            logger.error(f"Error extracting price from Moneycontrol: {e}")
             return None
 
 

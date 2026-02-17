@@ -88,12 +88,13 @@ async def _fetch_from_provider_fallback(ticker: str, period: str = "2y") -> pd.D
         clean_symbol = ticker.replace(".NS", "")
         
         logger.info(f"🔄 Fallback: Fetching {clean_symbol} from active provider...")
-        provider = ProviderFactory.get_provider()
         
-        # Calculate period (approximate 2y as "2y" or "104w" etc depending on provider logic)
-        # But get_historical_data takes "1mo", "1y", etc.
-        # calls are async
-        historical = await provider.get_historical_data(clean_symbol, period=period)
+        # ✅ FIX: Create ProviderFactory instance (not static call)
+        from ..providers.provider_factory import ProviderFactory
+        provider_factory = ProviderFactory()
+        
+        # Use instance method to get historical data
+        historical = await provider_factory.get_historical_data(clean_symbol, period=period)
         
         if not historical or not historical.data:
             logger.warning(f"⚠️ Provider returned no data for {ticker}")
@@ -107,7 +108,17 @@ async def _fetch_from_provider_fallback(ticker: str, period: str = "2y") -> pd.D
         df.set_index("Date", inplace=True)
         df.drop(columns=["date"], inplace=True)
         
-        # Rename lower case to Title Case
+        # Rename columns to match yfinance format
+        df.rename(columns={
+            "open": "Open",
+            "high": "High",
+            "low": "Low",
+            "close": "Close",
+            "volume": "Volume"
+        }, inplace=True)
+        
+        logger.info(f"✅ Provider fallback successful for {ticker}: {len(df)} rows")
+        return df
         df.rename(columns={
             "open": "Open", 
             "high": "High", 
@@ -207,8 +218,9 @@ def _generate_synthetic_data(ticker: str, period: str = "2y") -> pd.DataFrame:
     }, index=dates)
     
     # Ensure no NaN
-    df.fillna(method='ffill', inplace=True)
-    df.fillna(method='bfill', inplace=True)
+    # ✅ FIX: Use new pandas syntax (no deprecation warnings)
+    df = df.ffill()  # Forward fill
+    df = df.bfill()  # Backward fill
     
     return df
 
