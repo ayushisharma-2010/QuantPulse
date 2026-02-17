@@ -57,6 +57,7 @@ from app.routers import predictions
 from app.routers import ensemble
 from app.routers import v2_analysis
 from app.routers import auth
+from app.routers import admin
 
 # Setup logging first
 setup_logging()
@@ -175,6 +176,7 @@ app.add_middleware(
 
 app.include_router(health.router)
 app.include_router(auth.router)
+app.include_router(admin.router)
 app.include_router(stocks.router)
 app.include_router(news.router)
 app.include_router(predictions.router)
