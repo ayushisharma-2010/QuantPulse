@@ -16,11 +16,6 @@ os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
 from dotenv import load_dotenv
 load_dotenv()
 
-# Bridge GOOGLE_API_KEY → GEMINI_API_KEY for LiteLLM's gemini/ provider
-_gkey = os.getenv("GOOGLE_API_KEY", "")
-if _gkey:
-    os.environ["GEMINI_API_KEY"] = _gkey
-
 # NOTE: crewai imports are DEFERRED to _execute_crew() to avoid blocking
 # uvicorn port binding on Render. CrewAI pulls in chromadb, litellm,
 # opentelemetry (300+ deps) which takes 30-60s to import.
@@ -30,13 +25,13 @@ logger = logging.getLogger(__name__)
 # =============================================================================
 # Validate API Keys at import time — warn if missing, don't crash
 # =============================================================================
-GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 SERPER_API_KEY = os.getenv("SERPER_API_KEY")
 
-if not GOOGLE_API_KEY:
-    logger.error("❌ GOOGLE_API_KEY not found. War Room agents will fail.")
+if not GROQ_API_KEY:
+    logger.error("❌ GROQ_API_KEY not found. War Room agents will fail.")
 if not SERPER_API_KEY:
-    logger.warning("⚠️ SERPER_API_KEY not found. Search tool disabled.")
+    logger.warning("⚠️ SERPER_API_KEY not found. Search tool and live price fallback disabled.")
 
 logger.info("✅ API key check complete")
 # ... (existing imports)
@@ -62,7 +57,7 @@ def run_war_room(
     """
 
     # Phase A: Minimal buffer (reduced from 15s to 1s to prevent timeouts)
-    # Gemini 2.0 Flash is fast enough; we rely on resilience rather than waiting.
+    # Groq is ultra-fast; we rely on resilience rather than waiting.
     logger.info("⏳ Phase A: Initializing War Room...")
     time.sleep(1)
 
@@ -111,12 +106,12 @@ def _execute_crew(
         _serper_available = False
         logger.warning(f"⚠️ crewai_tools import failed: {e}")
 
-    # ---- LLM Brain (Native CrewAI → LiteLLM → Gemini) ----
-    # gemini-2.0-flash-lite: highest free-tier quota (30 RPM).
-    # Best choice for stable daily usage on Free Tier.
+    # ---- LLM Brain (Groq - Fast & Free) ----
+    # llama-3.3-70b-versatile: Fast, high-quality, and generous free tier
+    # Groq provides ultra-fast inference with excellent reasoning capabilities
     llm = LLM(
-        model="gemini/gemini-2.0-flash-lite",
-        api_key=os.getenv("GOOGLE_API_KEY"),
+        model="groq/llama-3.3-70b-versatile",
+        api_key=os.getenv("GROQ_API_KEY"),
         temperature=0.2,
     )
 

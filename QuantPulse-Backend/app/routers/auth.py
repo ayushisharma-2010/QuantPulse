@@ -43,39 +43,31 @@ router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 # =============================================================================
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
-def register_user(user_data: UserRegister, db: Session = Depends(get_db)):
+def register_user(user_data: UserRegister):
     """
-    Register a new user account.
+    Register a new user account (DUMMY MODE - accepts any credentials).
     
-    - **email**: Valid email address (must be unique)
-    - **password**: Strong password (min 8 chars, 1 digit, 1 uppercase)
+    - **email**: Any email format
+    - **password**: Any password
     - **full_name**: Optional full name
     
-    Returns the created user object (without password).
+    Returns a dummy user object.
     """
-    # Check if user already exists
-    existing_user = db.query(User).filter(User.email == user_data.email).first()
-    if existing_user:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email already registered"
-        )
+    # DUMMY MODE: Skip database, return fake user
+    from datetime import datetime
     
-    # Create new user
-    hashed_password = get_password_hash(user_data.password)
-    new_user = User(
-        email=user_data.email,
-        hashed_password=hashed_password,
-        full_name=user_data.full_name,
-        is_active=True,
-        is_verified=False
-    )
+    # Create a dummy user response without database
+    dummy_user = {
+        "id": 1,
+        "email": user_data.email,
+        "full_name": user_data.full_name or "Demo User",
+        "is_active": True,
+        "is_verified": True,
+        "created_at": datetime.utcnow(),
+        "last_login": None
+    }
     
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
-    
-    return new_user
+    return dummy_user
 
 # =============================================================================
 # User Login (Rate Limited to Prevent Brute Force Attacks)
@@ -85,84 +77,76 @@ def register_user(user_data: UserRegister, db: Session = Depends(get_db)):
 @limiter.limit("5/minute")  # Max 5 login attempts per minute
 def login(
     request: Request,
-    form_data: OAuth2PasswordRequestForm = Depends(),
-    db: Session = Depends(get_db)
+    form_data: OAuth2PasswordRequestForm = Depends()
 ):
     """
-    Login with email and password to get access token.
+    Login with email and password (DUMMY MODE - accepts any credentials).
     
-    **Rate Limited:** 5 attempts per minute to prevent brute force attacks.
+    - **username**: Any email
+    - **password**: Any password
     
-    - **username**: Email address (OAuth2 spec uses 'username' field)
-    - **password**: User password
-    
-    Returns JWT access token for authenticated requests.
+    Returns JWT access token.
     """
-    # Authenticate user
-    user = authenticate_user(db, form_data.username, form_data.password)
+    from datetime import datetime
     
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    
-    # Update last login timestamp
-    user.last_login = datetime.utcnow()
-    db.commit()
+    # DUMMY MODE: Accept any credentials
+    dummy_user = {
+        "id": 1,
+        "email": form_data.username,
+        "full_name": "Demo User",
+        "is_active": True,
+        "is_verified": True,
+        "created_at": datetime.utcnow(),
+        "last_login": datetime.utcnow()
+    }
     
     # Create access token
     access_token = create_access_token(
-        data={"sub": user.email, "user_id": user.id}
+        data={"sub": form_data.username, "user_id": 1}
     )
     
     return {
         "access_token": access_token,
         "token_type": "bearer",
-        "user": user
+        "user": dummy_user
     }
 
 @router.post("/login/json", response_model=Token)
 @limiter.limit("5/minute")  # Max 5 login attempts per minute
 def login_json(
     request: Request,
-    user_data: UserLogin,
-    db: Session = Depends(get_db)
+    user_data: UserLogin
 ):
     """
-    Login with JSON payload (alternative to form data).
+    Login with JSON payload (DUMMY MODE - accepts any credentials).
     
-    **Rate Limited:** 5 attempts per minute to prevent brute force attacks.
+    - **email**: Any email
+    - **password**: Any password
     
-    - **email**: User email
-    - **password**: User password
-    
-    Returns JWT access token for authenticated requests.
+    Returns JWT access token.
     """
-    # Authenticate user
-    user = authenticate_user(db, user_data.email, user_data.password)
+    from datetime import datetime
     
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    
-    # Update last login timestamp
-    user.last_login = datetime.utcnow()
-    db.commit()
+    # DUMMY MODE: Accept any credentials
+    dummy_user = {
+        "id": 1,
+        "email": user_data.email,
+        "full_name": "Demo User",
+        "is_active": True,
+        "is_verified": True,
+        "created_at": datetime.utcnow(),
+        "last_login": datetime.utcnow()
+    }
     
     # Create access token
     access_token = create_access_token(
-        data={"sub": user.email, "user_id": user.id}
+        data={"sub": user_data.email, "user_id": 1}
     )
     
     return {
         "access_token": access_token,
         "token_type": "bearer",
-        "user": user
+        "user": dummy_user
     }
 
 # =============================================================================
@@ -170,81 +154,64 @@ def login_json(
 # =============================================================================
 
 @router.get("/me", response_model=UserResponse)
-def get_current_user_info(current_user: User = Depends(get_current_active_user)):
+def get_current_user_info():
     """
-    Get current authenticated user information.
+    Get current authenticated user information (DUMMY MODE).
     
-    Requires valid JWT token in Authorization header.
+    Returns dummy user data without token validation.
     """
-    return current_user
+    from datetime import datetime
+    
+    # DUMMY MODE: Return fake user data
+    dummy_user = {
+        "id": 1,
+        "email": "demo@user.com",
+        "full_name": "Demo User",
+        "is_active": True,
+        "is_verified": True,
+        "created_at": datetime.utcnow(),
+        "last_login": datetime.utcnow()
+    }
+    
+    return dummy_user
 
 # =============================================================================
 # Update User Profile
 # =============================================================================
 
 @router.put("/me", response_model=UserResponse)
-def update_user_profile(
-    user_update: UserUpdate,
-    current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
-):
+def update_user_profile(user_update: UserUpdate):
     """
-    Update current user's profile information.
+    Update current user's profile information (DUMMY MODE).
     
-    - **full_name**: Update full name
-    - **email**: Update email (must be unique)
-    
-    Requires valid JWT token in Authorization header.
+    Returns dummy user data.
     """
-    # Update full name if provided
-    if user_update.full_name is not None:
-        current_user.full_name = user_update.full_name
+    from datetime import datetime
     
-    # Update email if provided and different
-    if user_update.email and user_update.email != current_user.email:
-        # Check if new email is already taken
-        existing_user = db.query(User).filter(User.email == user_update.email).first()
-        if existing_user:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Email already registered"
-            )
-        current_user.email = user_update.email
+    # DUMMY MODE: Return fake updated user
+    dummy_user = {
+        "id": 1,
+        "email": user_update.email or "demo@user.com",
+        "full_name": user_update.full_name or "Demo User",
+        "is_active": True,
+        "is_verified": True,
+        "created_at": datetime.utcnow(),
+        "last_login": datetime.utcnow()
+    }
     
-    db.commit()
-    db.refresh(current_user)
-    
-    return current_user
+    return dummy_user
 
 # =============================================================================
 # Change Password
 # =============================================================================
 
 @router.post("/change-password", response_model=MessageResponse)
-def change_password(
-    password_data: PasswordChange,
-    current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
-):
+def change_password(password_data: PasswordChange):
     """
-    Change current user's password.
+    Change current user's password (DUMMY MODE).
     
-    - **current_password**: Current password for verification
-    - **new_password**: New password (min 8 chars, 1 digit, 1 uppercase)
-    
-    Requires valid JWT token in Authorization header.
+    Always succeeds.
     """
-    # Verify current password
-    if not verify_password(password_data.current_password, current_user.hashed_password):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Incorrect current password"
-        )
-    
-    # Update password
-    current_user.hashed_password = get_password_hash(password_data.new_password)
-    db.commit()
-    
     return {
         "message": "Password changed successfully",
         "detail": "Please login again with your new password"
@@ -255,19 +222,12 @@ def change_password(
 # =============================================================================
 
 @router.delete("/me", response_model=MessageResponse)
-def delete_account(
-    current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
-):
+def delete_account():
     """
-    Delete current user's account (soft delete - marks as inactive).
+    Delete current user's account (DUMMY MODE).
     
-    Requires valid JWT token in Authorization header.
+    Always succeeds.
     """
-    # Soft delete - mark as inactive instead of deleting
-    current_user.is_active = False
-    db.commit()
-    
     return {
         "message": "Account deactivated successfully",
         "detail": "Your account has been deactivated. Contact support to reactivate."

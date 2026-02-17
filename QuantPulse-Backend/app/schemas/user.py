@@ -14,25 +14,14 @@ from datetime import datetime
 # =============================================================================
 
 class UserRegister(BaseModel):
-    """Schema for user registration"""
-    email: EmailStr
-    password: str = Field(..., min_length=8, max_length=100)
-    full_name: Optional[str] = Field(None, max_length=255)
-    
-    @validator('password')
-    def password_strength(cls, v):
-        """Validate password strength"""
-        if len(v) < 8:
-            raise ValueError('Password must be at least 8 characters long')
-        if not any(char.isdigit() for char in v):
-            raise ValueError('Password must contain at least one digit')
-        if not any(char.isupper() for char in v):
-            raise ValueError('Password must contain at least one uppercase letter')
-        return v
+    """Schema for user registration (DUMMY MODE - no validation)"""
+    email: str  # Changed from EmailStr to accept any string
+    password: str  # Removed min_length validation
+    full_name: Optional[str] = None
 
 class UserLogin(BaseModel):
-    """Schema for user login"""
-    email: EmailStr
+    """Schema for user login (DUMMY MODE - no validation)"""
+    email: str  # Changed from EmailStr to accept any string
     password: str
 
 class Token(BaseModel):

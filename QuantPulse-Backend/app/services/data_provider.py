@@ -20,6 +20,7 @@ import pandas as pd
 
 import asyncio
 from app.providers.provider_factory import ProviderFactory
+from app.services.serper_price_service import serper_price_service
 
 logger = logging.getLogger(__name__)
 
@@ -213,21 +214,34 @@ def _generate_synthetic_data(ticker: str, period: str = "2y") -> pd.DataFrame:
 
 async def _get_data_async(ticker: str, period: str = "2y") -> pd.DataFrame | None:
     """
-    Orchestrates data fetching: yfinance -> Fallback Provider -> Synthetic
+    Orchestrates data fetching: yfinance -> Serper (live price) -> Fallback Provider -> Synthetic
     """
     # 1. Try yfinance (sync)
     df = _download_safe_sync(ticker, period)
     if df is not None and not df.empty:
         return df
+    
+    # 2. Try Serper API for live price (only for current price, not historical)
+    # This is specifically for Vercel deployment where yfinance may fail
+    if not ticker.startswith("^"):
+        logger.info(f"🔄 yfinance failed, trying Serper API for live price of {ticker}...")
+        serper_data = await serper_price_service.get_live_price(ticker)
         
-    # 2. Try Fallback Provider (skip for indices usually)
+        if serper_data and serper_data.get("price"):
+            # Create a minimal DataFrame with just the current price
+            # For historical context, we'll still need to fall back to synthetic
+            logger.info(f"✅ Got live price from Serper: ₹{serper_data['price']}")
+            # Continue to fallback provider for historical data
+        
+    # 3. Try Fallback Provider (skip for indices usually)
     if not ticker.startswith("^"):
         df = await _fetch_from_provider_fallback(ticker, period)
         if df is not None and not df.empty:
             return df
             
-    # 3. FINAL FALLBACK: Synthetic Data
+    # 4. FINAL FALLBACK: Synthetic Data
     # The user explicitly requested "run it on simulated" if no data.
+    logger.warning(f"⚠️ All data sources failed for {ticker}, using SIMULATED data")
     return _generate_synthetic_data(ticker, period)
 
 

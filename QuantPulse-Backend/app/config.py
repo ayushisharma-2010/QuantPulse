@@ -53,8 +53,11 @@ STOCK_PROVIDER = os.getenv("STOCK_PROVIDER", "auto")  # auto, twelvedata, finnhu
 NEWSAPI_KEY = os.getenv("NEWSAPI_KEY")
 
 # AI / LLM API Keys (for War Room agents)
-GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY", "MISSING_KEY")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY", "MISSING_KEY")
 SERPER_API_KEY = os.getenv("SERPER_API_KEY", "MISSING_KEY")
+
+# Security Keys
+SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-change-in-production-please-use-strong-key")
 
 # Hugging Face Token (for downloading LSTM model)
 HF_TOKEN = os.getenv("HF_TOKEN", None)  # None = public repo, no token needed
@@ -151,7 +154,7 @@ def validate_and_log_configuration():
     print(f"NEWSAPI_KEY loaded: {bool(NEWSAPI_KEY)}")
     print(f"FINNHUB_API_KEY loaded: {bool(FINNHUB_API_KEY)}")
     print(f"TWELVEDATA_API_KEY loaded: {bool(TWELVEDATA_API_KEY)}")
-    print(f"GOOGLE_API_KEY loaded: {GOOGLE_API_KEY != 'MISSING_KEY'}")
+    print(f"GROQ_API_KEY loaded: {GROQ_API_KEY != 'MISSING_KEY'}")
     print(f"SERPER_API_KEY loaded: {SERPER_API_KEY != 'MISSING_KEY'}")
     print(f"HF_TOKEN loaded: {bool(HF_TOKEN)}")
     print(f"DEMO_MODE: {DEMO_MODE}")
@@ -237,7 +240,7 @@ __all__ = [
     "TWELVEDATA_API_KEY",
     "FINNHUB_API_KEY",
     "NEWSAPI_KEY",
-    "GOOGLE_API_KEY",
+    "GROQ_API_KEY",
     "SERPER_API_KEY",
     "HF_TOKEN",
     "STOCK_PROVIDER",

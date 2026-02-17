@@ -32,13 +32,13 @@ except Exception as e:
 # Step 1: Check API Keys
 # ─────────────────────────────────────────────────────────────
 print("\n[1/5] Checking API Keys...")
-google_key = os.getenv("GOOGLE_API_KEY")
+groq_key = os.getenv("GROQ_API_KEY")
 serper_key = os.getenv("SERPER_API_KEY")
 
-if google_key:
-    print(f"  ✅ GOOGLE_API_KEY found ({google_key[:8]}...{google_key[-4:]})")
+if groq_key:
+    print(f"  ✅ GROQ_API_KEY found ({groq_key[:8]}...{groq_key[-4:]})")
 else:
-    print("  ❌ GOOGLE_API_KEY is MISSING from .env!")
+    print("  ❌ GROQ_API_KEY is MISSING from .env!")
 
 if serper_key:
     print(f"  ✅ SERPER_API_KEY found ({serper_key[:8]}...{serper_key[-4:]})")
@@ -59,28 +59,29 @@ except Exception:
     print("     Or if pydantic conflict: pip install 'crewai[tools]'")
 
 # ─────────────────────────────────────────────────────────────
-# Step 3: Test langchain-google-genai import
+# Step 3: Test langchain-groq import
 # ─────────────────────────────────────────────────────────────
-print("\n[3/5] Importing langchain_google_genai...")
+print("\n[3/5] Importing langchain_groq...")
 try:
-    from langchain_google_genai import ChatGoogleGenerativeAI
-    print("  ✅ langchain_google_genai imported successfully")
+    from langchain_groq import ChatGroq
+    print("  ✅ langchain_groq imported successfully")
     
     # Try to instantiate it
-    if google_key:
-        llm = ChatGoogleGenerativeAI(
-            model="gemini-2.0-flash",
-            google_api_key=google_key,
+    groq_key = os.getenv("GROQ_API_KEY")
+    if groq_key:
+        llm = ChatGroq(
+            model="llama-3.3-70b-versatile",
+            api_key=groq_key,
             temperature=0.3,
         )
-        print(f"  ✅ ChatGoogleGenerativeAI instantiated (model: gemini-2.0-flash)")
+        print(f"  ✅ ChatGroq instantiated (model: llama-3.3-70b-versatile)")
     else:
-        print("  ⚠️ Skipping instantiation — no GOOGLE_API_KEY")
+        print("  ⚠️ Skipping instantiation — no GROQ_API_KEY")
 
 except Exception:
-    print("  ❌ CRITICAL ERROR importing langchain_google_genai:")
+    print("  ❌ CRITICAL ERROR importing langchain_groq:")
     traceback.print_exc()
-    print("\n  💡 Fix: pip install langchain-google-genai")
+    print("\n  💡 Fix: pip install langchain-groq")
 
 # ─────────────────────────────────────────────────────────────
 # Step 4: Test crewai_tools import
@@ -110,11 +111,12 @@ print("\n[5/5] Creating a test Agent...")
 try:
     from crewai import Agent
 
-    if google_key:
-        from langchain_google_genai import ChatGoogleGenerativeAI
-        test_llm = ChatGoogleGenerativeAI(
-            model="gemini-2.0-flash",
-            google_api_key=google_key,
+    groq_key = os.getenv("GROQ_API_KEY")
+    if groq_key:
+        from langchain_groq import ChatGroq
+        test_llm = ChatGroq(
+            model="llama-3.3-70b-versatile",
+            api_key=groq_key,
             temperature=0.3,
         )
         test_agent = Agent(
@@ -127,7 +129,7 @@ try:
         )
         print(f"  ✅ Test Agent created successfully: {test_agent.role}")
     else:
-        print("  ⚠️ Skipping agent creation — no GOOGLE_API_KEY")
+        print("  ⚠️ Skipping agent creation — no GROQ_API_KEY")
 
 except Exception:
     print("  ❌ CRITICAL ERROR creating Agent:")
@@ -142,17 +144,17 @@ print("\n" + "=" * 60)
 all_ok = True
 try:
     import crewai
-    from langchain_google_genai import ChatGoogleGenerativeAI
+    from langchain_groq import ChatGroq
     from crewai_tools import SerperDevTool
 except Exception:
     all_ok = False
 
-if all_ok and google_key and serper_key:
+if all_ok and groq_key and serper_key:
     print("✅ Agents are Ready! All imports and API keys verified.")
 else:
     issues = []
-    if not google_key:
-        issues.append("GOOGLE_API_KEY missing")
+    if not groq_key:
+        issues.append("GROQ_API_KEY missing")
     if not serper_key:
         issues.append("SERPER_API_KEY missing")
     if not all_ok:

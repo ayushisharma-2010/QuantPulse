@@ -1,397 +1,592 @@
 {
-  "nodes": [
-    {
-      "id": "RELIANCE.NS",
-      "group": 3,
-      "risk_score": 0.355,
-      "centrality_eigen": 0.2727,
-      "centrality_between": 0.4891,
-      "market_cap": "Large"
-    },
-    {
-      "id": "TCS.NS",
-      "group": 2,
-      "risk_score": 0.3574,
-      "centrality_eigen": 0.203,
-      "centrality_between": 0.5942,
-      "market_cap": "Large"
-    },
-    {
-      "id": "HDFCBANK.NS",
-      "group": 1,
-      "risk_score": 0.5236,
-      "centrality_eigen": 0.5829,
-      "centrality_between": 0.6594,
-      "market_cap": "Large"
-    },
-    {
-      "id": "INFY.NS",
-      "group": 2,
-      "risk_score": 0.1725,
-      "centrality_eigen": 0.0514,
-      "centrality_between": 0.0,
-      "market_cap": "Large"
-    },
-    {
-      "id": "ICICIBANK.NS",
-      "group": 1,
-      "risk_score": 0.3906,
-      "centrality_eigen": 0.5056,
-      "centrality_between": 0.1594,
-      "market_cap": "Large"
-    },
-    {
-      "id": "BHARTIARTL.NS",
-      "group": 4,
-      "risk_score": 0.1614,
-      "centrality_eigen": 0.0142,
-      "centrality_between": 0.0,
-      "market_cap": "Large"
-    },
-    {
-      "id": "ITC.NS",
-      "group": 5,
-      "risk_score": 0.1593,
-      "centrality_eigen": 0.0049,
-      "centrality_between": 0.0,
-      "market_cap": "Large"
-    },
-    {
-      "id": "SBIN.NS",
-      "group": 1,
-      "risk_score": 0.2757,
-      "centrality_eigen": 0.3076,
-      "centrality_between": 0.0,
-      "market_cap": "Large"
-    },
-    {
-      "id": "LT.NS",
-      "group": 3,
-      "risk_score": 0.2801,
-      "centrality_eigen": 0.114,
-      "centrality_between": 0.3913,
-      "market_cap": "Large"
-    },
-    {
-      "id": "HCLTECH.NS",
-      "group": 2,
-      "risk_score": 0.2509,
-      "centrality_eigen": 0.1206,
-      "centrality_between": 0.2391,
-      "market_cap": "Large"
-    },
-    {
-      "id": "AXISBANK.NS",
-      "group": 1,
-      "risk_score": 0.2201,
-      "centrality_eigen": 0.1763,
-      "centrality_between": 0.0,
-      "market_cap": "Large"
-    },
-    {
-      "id": "KOTAKBANK.NS",
-      "group": 1,
-      "risk_score": 0.3148,
-      "centrality_eigen": 0.3508,
-      "centrality_between": 0.0833,
-      "market_cap": "Large"
-    },
-    {
-      "id": "M&M.NS",
-      "group": 3,
-      "risk_score": 0.161,
-      "centrality_eigen": 0.0012,
-      "centrality_between": 0.0,
-      "market_cap": "Large"
-    },
-    {
-      "id": "MARUTI.NS",
-      "group": 3,
-      "risk_score": 0.1559,
-      "centrality_eigen": 0.0012,
-      "centrality_between": 0.0,
-      "market_cap": "Large"
-    },
-    {
-      "id": "TATAMOTORS.NS",
-      "group": 3,
-      "risk_score": 0.2212,
-      "centrality_eigen": 0.0028,
-      "centrality_between": 0.308,
-      "market_cap": "Large"
-    },
-    {
-      "id": "HINDUNILVR.NS",
-      "group": 5,
-      "risk_score": 0.1651,
-      "centrality_eigen": 0.0022,
-      "centrality_between": 0.0,
-      "market_cap": "Large"
-    },
-    {
-      "id": "ASIANPAINT.NS",
-      "group": 5,
-      "risk_score": 0.2302,
-      "centrality_eigen": 0.0127,
-      "centrality_between": 0.3732,
-      "market_cap": "Large"
-    },
-    {
-      "id": "TITAN.NS",
-      "group": 5,
-      "risk_score": 0.1747,
-      "centrality_eigen": 0.0058,
-      "centrality_between": 0.0833,
-      "market_cap": "Large"
-    },
-    {
-      "id": "SUNPHARMA.NS",
-      "group": 5,
-      "risk_score": 0.1556,
-      "centrality_eigen": 0.0005,
-      "centrality_between": 0.0,
-      "market_cap": "Large"
-    },
-    {
-      "id": "CIPLA.NS",
-      "group": 5,
-      "risk_score": 0.1729,
-      "centrality_eigen": 0.0012,
-      "centrality_between": 0.0833,
-      "market_cap": "Large"
-    },
-    {
-      "id": "NTPC.NS",
-      "group": 3,
-      "risk_score": 0.191,
-      "centrality_eigen": 0.0967,
-      "centrality_between": 0.0,
-      "market_cap": "Large"
-    },
-    {
-      "id": "POWERGRID.NS",
-      "group": 3,
-      "risk_score": 0.1576,
-      "centrality_eigen": 0.0078,
-      "centrality_between": 0.0,
-      "market_cap": "Large"
-    },
-    {
-      "id": "TATASTEEL.NS",
-      "group": 3,
-      "risk_score": 0.1781,
-      "centrality_eigen": 0.0015,
-      "centrality_between": 0.0833,
-      "market_cap": "Large"
-    },
-    {
-      "id": "ULTRACEMCO.NS",
-      "group": 0,
-      "risk_score": 0.2314,
-      "centrality_eigen": 0.0151,
-      "centrality_between": 0.3442,
-      "market_cap": "Large"
-    },
-    {
-      "id": "JSWSTEEL.NS",
-      "group": 3,
-      "risk_score": 0.1453,
-      "centrality_eigen": 0.0007,
-      "centrality_between": 0.0,
-      "market_cap": "Large"
-    }
-  ],
-  "links": [
-    {
-      "source": "RELIANCE.NS",
-      "target": "LT.NS",
-      "value": 0.5,
-      "type": "MST"
-    },
-    {
-      "source": "RELIANCE.NS",
-      "target": "NTPC.NS",
-      "value": 0.43,
-      "type": "MST"
-    },
-    {
-      "source": "RELIANCE.NS",
-      "target": "HDFCBANK.NS",
-      "value": 0.4,
-      "type": "MST"
-    },
-    {
-      "source": "TCS.NS",
-      "target": "HCLTECH.NS",
-      "value": 0.58,
-      "type": "MST"
-    },
-    {
-      "source": "TCS.NS",
-      "target": "HDFCBANK.NS",
-      "value": 0.3,
-      "type": "MST"
-    },
-    {
-      "source": "TCS.NS",
-      "target": "ULTRACEMCO.NS",
-      "value": 0.09,
-      "type": "MST"
-    },
-    {
-      "source": "HDFCBANK.NS",
-      "target": "ICICIBANK.NS",
-      "value": 0.67,
-      "type": "MST"
-    },
-    {
-      "source": "HDFCBANK.NS",
-      "target": "SBIN.NS",
-      "value": 0.64,
-      "type": "MST"
-    },
-    {
-      "source": "INFY.NS",
-      "target": "HCLTECH.NS",
-      "value": 0.52,
-      "type": "MST"
-    },
-    {
-      "source": "ICICIBANK.NS",
-      "target": "KOTAKBANK.NS",
-      "value": 0.63,
-      "type": "MST"
-    },
-    {
-      "source": "BHARTIARTL.NS",
-      "target": "HCLTECH.NS",
-      "value": 0.14,
-      "type": "MST"
-    },
-    {
-      "source": "ITC.NS",
-      "target": "ASIANPAINT.NS",
-      "value": 0.47,
-      "type": "MST"
-    },
-    {
-      "source": "LT.NS",
-      "target": "ASIANPAINT.NS",
-      "value": 0.09,
-      "type": "MST"
-    },
-    {
-      "source": "HCLTECH.NS",
-      "target": "POWERGRID.NS",
-      "value": 0.08,
-      "type": "MST"
-    },
-    {
-      "source": "AXISBANK.NS",
-      "target": "KOTAKBANK.NS",
-      "value": 0.61,
-      "type": "MST"
-    },
-    {
-      "source": "M&M.NS",
-      "target": "TATAMOTORS.NS",
-      "value": 0.53,
-      "type": "MST"
-    },
-    {
-      "source": "MARUTI.NS",
-      "target": "TATAMOTORS.NS",
-      "value": 0.51,
-      "type": "MST"
-    },
-    {
-      "source": "TATAMOTORS.NS",
-      "target": "TATASTEEL.NS",
-      "value": 0.52,
-      "type": "MST"
-    },
-    {
-      "source": "TATAMOTORS.NS",
-      "target": "ULTRACEMCO.NS",
-      "value": 0.09,
-      "type": "MST"
-    },
-    {
-      "source": "HINDUNILVR.NS",
-      "target": "TITAN.NS",
-      "value": 0.46,
-      "type": "MST"
-    },
-    {
-      "source": "ASIANPAINT.NS",
-      "target": "TITAN.NS",
-      "value": 0.48,
-      "type": "MST"
-    },
-    {
-      "source": "ASIANPAINT.NS",
-      "target": "CIPLA.NS",
-      "value": 0.09,
-      "type": "MST"
-    },
-    {
-      "source": "SUNPHARMA.NS",
-      "target": "CIPLA.NS",
-      "value": 0.49,
-      "type": "MST"
-    },
-    {
-      "source": "TATASTEEL.NS",
-      "target": "JSWSTEEL.NS",
-      "value": 0.54,
-      "type": "MST"
-    }
-  ],
-  "insights": {
-    "metrics": {
-      "spectral_radius": 1.2154,
-      "avg_path_length": 4.58,
-      "density": 0.08
-    },
-    "domino_prediction": {
-      "trigger": "HDFCBANK.NS",
-      "sentiment": "Bearish",
-      "downstream_impact": [
+    "nodes": [
         {
-          "ticker": "ICICIBANK.NS",
-          "correlation": 0.6749,
-          "predicted_impact": "Medium"
+            "id": "ADANIGREEN",
+            "sector": "Energy"
         },
         {
-          "ticker": "SBIN.NS",
-          "correlation": 0.6414,
-          "predicted_impact": "Medium"
+            "id": "ADANIPOWER",
+            "sector": "Energy"
         },
         {
-          "ticker": "RELIANCE.NS",
-          "correlation": 0.3986,
-          "predicted_impact": "Medium"
+            "id": "ASHOKLEY",
+            "sector": "Auto"
+        },
+        {
+            "id": "AUBANK",
+            "sector": "Banking"
+        },
+        {
+            "id": "AXISBANK",
+            "sector": "Banking"
+        },
+        {
+            "id": "BAJAJ-AUTO",
+            "sector": "Auto"
+        },
+        {
+            "id": "BALKRISIND",
+            "sector": "Auto"
+        },
+        {
+            "id": "BANKBARODA",
+            "sector": "Banking"
+        },
+        {
+            "id": "BHARATFORG",
+            "sector": "Auto"
+        },
+        {
+            "id": "BPCL",
+            "sector": "Energy"
+        },
+        {
+            "id": "BRITANNIA",
+            "sector": "FMCG"
+        },
+        {
+            "id": "COFORGE",
+            "sector": "IT"
+        },
+        {
+            "id": "COLPAL",
+            "sector": "FMCG"
+        },
+        {
+            "id": "DABUR",
+            "sector": "FMCG"
+        },
+        {
+            "id": "EICHERMOT",
+            "sector": "Auto"
+        },
+        {
+            "id": "GAIL",
+            "sector": "Energy"
+        },
+        {
+            "id": "GODREJCP",
+            "sector": "FMCG"
+        },
+        {
+            "id": "HCLTECH",
+            "sector": "IT"
+        },
+        {
+            "id": "HDFCBANK",
+            "sector": "Banking"
+        },
+        {
+            "id": "HEROMOTOCO",
+            "sector": "Auto"
+        },
+        {
+            "id": "HINDUNILVR",
+            "sector": "FMCG"
+        },
+        {
+            "id": "ICICIBANK",
+            "sector": "Banking"
+        },
+        {
+            "id": "IDFCFIRSTB",
+            "sector": "Banking"
+        },
+        {
+            "id": "INDUSINDBK",
+            "sector": "Banking"
+        },
+        {
+            "id": "INFY",
+            "sector": "IT"
+        },
+        {
+            "id": "IOC",
+            "sector": "Energy"
+        },
+        {
+            "id": "ITC",
+            "sector": "FMCG"
+        },
+        {
+            "id": "KOTAKBANK",
+            "sector": "Banking"
+        },
+        {
+            "id": "KPITTECH",
+            "sector": "IT"
+        },
+        {
+            "id": "LTIM",
+            "sector": "IT"
+        },
+        {
+            "id": "M&M",
+            "sector": "Auto"
+        },
+        {
+            "id": "MARICO",
+            "sector": "FMCG"
+        },
+        {
+            "id": "MARUTI",
+            "sector": "Auto"
+        },
+        {
+            "id": "NESTLEIND",
+            "sector": "FMCG"
+        },
+        {
+            "id": "NTPC",
+            "sector": "Energy"
+        },
+        {
+            "id": "ONGC",
+            "sector": "Energy"
+        },
+        {
+            "id": "PERSISTENT",
+            "sector": "IT"
+        },
+        {
+            "id": "PNB",
+            "sector": "Banking"
+        },
+        {
+            "id": "POWERGRID",
+            "sector": "Energy"
+        },
+        {
+            "id": "RELIANCE",
+            "sector": "Energy"
+        },
+        {
+            "id": "SBIN",
+            "sector": "Banking"
+        },
+        {
+            "id": "TATACONSUM",
+            "sector": "FMCG"
+        },
+        {
+            "id": "TATAELXSI",
+            "sector": "IT"
+        },
+        {
+            "id": "TATAPOWER",
+            "sector": "Energy"
+        },
+        {
+            "id": "TCS",
+            "sector": "IT"
+        },
+        {
+            "id": "TECHM",
+            "sector": "IT"
+        },
+        {
+            "id": "TVSMOTOR",
+            "sector": "Auto"
+        },
+        {
+            "id": "VBL",
+            "sector": "FMCG"
+        },
+        {
+            "id": "WIPRO",
+            "sector": "IT"
         }
-      ]
-    },
-    "clusters": [
-      {
-        "name": "Financial Core",
-        "members": [
-          "HDFCBANK.NS",
-          "ICICIBANK.NS",
-          "SBIN.NS"
-        ],
-        "risk": "Critical"
-      },
-      {
-        "name": "IT Defensive",
-        "members": [
-          "TCS.NS",
-          "INFY.NS"
-        ],
-        "risk": "Moderate"
-      }
+    ],
+    "links": [
+        {
+            "source": "BALKRISIND",
+            "target": "ASHOKLEY",
+            "weight": 0.1938723921775818
+        },
+        {
+            "source": "IDFCFIRSTB",
+            "target": "AUBANK",
+            "weight": 0.12741947174072266
+        },
+        {
+            "source": "INDUSINDBK",
+            "target": "AUBANK",
+            "weight": 0.2908409833908081
+        },
+        {
+            "source": "INDUSINDBK",
+            "target": "AXISBANK",
+            "weight": 0.15460588037967682
+        },
+        {
+            "source": "BAJAJ-AUTO",
+            "target": "BALKRISIND",
+            "weight": 0.1477404683828354
+        },
+        {
+            "source": "BALKRISIND",
+            "target": "EICHERMOT",
+            "weight": 0.13133922219276428
+        },
+        {
+            "source": "BALKRISIND",
+            "target": "MARUTI",
+            "weight": 0.15071339905261993
+        },
+        {
+            "source": "MARUTI",
+            "target": "BALKRISIND",
+            "weight": 0.1329161375761032
+        },
+        {
+            "source": "INDUSINDBK",
+            "target": "BANKBARODA",
+            "weight": 0.13887368142604828
+        },
+        {
+            "source": "ITC",
+            "target": "BRITANNIA",
+            "weight": 0.16150043904781342
+        },
+        {
+            "source": "TATAELXSI",
+            "target": "COFORGE",
+            "weight": 0.13766705989837646
+        },
+        {
+            "source": "TCS",
+            "target": "COFORGE",
+            "weight": 0.13108134269714355
+        },
+        {
+            "source": "COLPAL",
+            "target": "NESTLEIND",
+            "weight": 0.12956058979034424
+        },
+        {
+            "source": "VBL",
+            "target": "DABUR",
+            "weight": 0.12900736927986145
+        },
+        {
+            "source": "HDFCBANK",
+            "target": "IDFCFIRSTB",
+            "weight": 0.12815427780151367
+        },
+        {
+            "source": "INDUSINDBK",
+            "target": "HDFCBANK",
+            "weight": 0.25075191259384155
+        },
+        {
+            "source": "HDFCBANK",
+            "target": "KOTAKBANK",
+            "weight": 0.13167324662208557
+        },
+        {
+            "source": "VBL",
+            "target": "HINDUNILVR",
+            "weight": 0.12969733774662018
+        },
+        {
+            "source": "INDUSINDBK",
+            "target": "ICICIBANK",
+            "weight": 0.16345110535621643
+        },
+        {
+            "source": "INDUSINDBK",
+            "target": "IDFCFIRSTB",
+            "weight": 0.27431321144104004
+        },
+        {
+            "source": "IDFCFIRSTB",
+            "target": "KOTAKBANK",
+            "weight": 0.13587108254432678
+        },
+        {
+            "source": "INDUSINDBK",
+            "target": "KOTAKBANK",
+            "weight": 0.2585947513580322
+        },
+        {
+            "source": "INDUSINDBK",
+            "target": "SBIN",
+            "weight": 0.160684734582901
+        },
+        {
+            "source": "KPITTECH",
+            "target": "INFY",
+            "weight": 0.14152507483959198
+        },
+        {
+            "source": "INFY",
+            "target": "TATAELXSI",
+            "weight": 0.1299912929534912
+        },
+        {
+            "source": "TATAELXSI",
+            "target": "INFY",
+            "weight": 0.149770125746727
+        },
+        {
+            "source": "TCS",
+            "target": "INFY",
+            "weight": 0.14095231890678406
+        },
+        {
+            "source": "INFY",
+            "target": "WIPRO",
+            "weight": 0.12792953848838806
+        },
+        {
+            "source": "ITC",
+            "target": "MARICO",
+            "weight": 0.1450273096561432
+        },
+        {
+            "source": "ITC",
+            "target": "NESTLEIND",
+            "weight": 0.20719988644123077
+        },
+        {
+            "source": "KPITTECH",
+            "target": "LTIM",
+            "weight": 0.14594882726669312
+        },
+        {
+            "source": "KPITTECH",
+            "target": "WIPRO",
+            "weight": 0.1303044557571411
+        },
+        {
+            "source": "TATAELXSI",
+            "target": "LTIM",
+            "weight": 0.16631019115447998
+        },
+        {
+            "source": "TCS",
+            "target": "LTIM",
+            "weight": 0.146643728017807
+        },
+        {
+            "source": "VBL",
+            "target": "NESTLEIND",
+            "weight": 0.150067538022995
+        },
+        {
+            "source": "TATAELXSI",
+            "target": "TECHM",
+            "weight": 0.13187384605407715
+        },
+        {
+            "source": "TATAELXSI",
+            "target": "WIPRO",
+            "weight": 0.13427893817424774
+        },
+        {
+            "source": "TCS",
+            "target": "TECHM",
+            "weight": 0.12633734941482544
+        },
+        {
+            "source": "TCS",
+            "target": "WIPRO",
+            "weight": 0.1337997317314148
+        },
+        {
+            "source": "BALKRISIND",
+            "target": "BALKRISIND",
+            "weight": 0.17693693935871124
+        },
+        {
+            "source": "IDFCFIRSTB",
+            "target": "IDFCFIRSTB",
+            "weight": 0.132999449968338
+        },
+        {
+            "source": "RELIANCE",
+            "target": "HDFCBANK",
+            "weight": 0.18
+        },
+        {
+            "source": "RELIANCE",
+            "target": "TCS",
+            "weight": 0.16
+        },
+        {
+            "source": "BPCL",
+            "target": "IOC",
+            "weight": 0.22
+        },
+        {
+            "source": "BPCL",
+            "target": "ONGC",
+            "weight": 0.19
+        },
+        {
+            "source": "NTPC",
+            "target": "POWERGRID",
+            "weight": 0.21
+        },
+        {
+            "source": "NTPC",
+            "target": "TATAPOWER",
+            "weight": 0.17
+        },
+        {
+            "source": "ADANIGREEN",
+            "target": "ADANIPOWER",
+            "weight": 0.24
+        },
+        {
+            "source": "ADANIPOWER",
+            "target": "TATAPOWER",
+            "weight": 0.15
+        },
+        {
+            "source": "HDFCBANK",
+            "target": "ICICIBANK",
+            "weight": 0.28
+        },
+        {
+            "source": "HDFCBANK",
+            "target": "SBIN",
+            "weight": 0.26
+        },
+        {
+            "source": "AXISBANK",
+            "target": "KOTAKBANK",
+            "weight": 0.23
+        },
+        {
+            "source": "BANKBARODA",
+            "target": "PNB",
+            "weight": 0.20
+        },
+        {
+            "source": "TCS",
+            "target": "INFY",
+            "weight": 0.25
+        },
+        {
+            "source": "TCS",
+            "target": "WIPRO",
+            "weight": 0.19
+        },
+        {
+            "source": "HCLTECH",
+            "target": "TECHM",
+            "weight": 0.18
+        },
+        {
+            "source": "LTIM",
+            "target": "PERSISTENT",
+            "weight": 0.16
+        },
+        {
+            "source": "COFORGE",
+            "target": "KPITTECH",
+            "weight": 0.17
+        },
+        {
+            "source": "TATAELXSI",
+            "target": "PERSISTENT",
+            "weight": 0.15
+        },
+        {
+            "source": "MARUTI",
+            "target": "M&M",
+            "weight": 0.22
+        },
+        {
+            "source": "MARUTI",
+            "target": "TVSMOTOR",
+            "weight": 0.18
+        },
+        {
+            "source": "EICHERMOT",
+            "target": "HEROMOTOCO",
+            "weight": 0.20
+        },
+        {
+            "source": "ASHOKLEY",
+            "target": "BHARATFORG",
+            "weight": 0.16
+        },
+        {
+            "source": "BRITANNIA",
+            "target": "NESTLEIND",
+            "weight": 0.21
+        },
+        {
+            "source": "HINDUNILVR",
+            "target": "GODREJCP",
+            "weight": 0.19
+        },
+        {
+            "source": "DABUR",
+            "target": "MARICO",
+            "weight": 0.18
+        },
+        {
+            "source": "COLPAL",
+            "target": "GODREJCP",
+            "weight": 0.17
+        },
+        {
+            "source": "TATACONSUM",
+            "target": "VBL",
+            "weight": 0.16
+        },
+        {
+            "source": "RELIANCE",
+            "target": "BRITANNIA",
+            "weight": 0.14
+        },
+        {
+            "source": "TCS",
+            "target": "HDFCBANK",
+            "weight": 0.15
+        },
+        {
+            "source": "MARUTI",
+            "target": "ICICIBANK",
+            "weight": 0.13
+        },
+        {
+            "source": "BPCL",
+            "target": "SBIN",
+            "weight": 0.14
+        },
+        {
+            "source": "HINDUNILVR",
+            "target": "AXISBANK",
+            "weight": 0.12
+        },
+        {
+            "source": "NTPC",
+            "target": "KOTAKBANK",
+            "weight": 0.13
+        },
+        {
+            "source": "INFY",
+            "target": "RELIANCE",
+            "weight": 0.14
+        },
+        {
+            "source": "EICHERMOT",
+            "target": "HDFCBANK",
+            "weight": 0.12
+        },
+        {
+            "source": "BRITANNIA",
+            "target": "TCS",
+            "weight": 0.11
+        },
+        {
+            "source": "ONGC",
+            "target": "ICICIBANK",
+            "weight": 0.13
+        }
     ]
-  }
 }
