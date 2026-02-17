@@ -30,11 +30,17 @@ logger = logging.getLogger(__name__)
 # =============================================================================
 # Validate API Keys at import time — warn if missing, don't crash
 # =============================================================================
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 SERPER_API_KEY = os.getenv("SERPER_API_KEY")
 
-if not GOOGLE_API_KEY:
-    logger.error("❌ GOOGLE_API_KEY not found. War Room agents will fail.")
+if not GROQ_API_KEY and not GOOGLE_API_KEY:
+    logger.error("❌ No LLM API keys found (GROQ_API_KEY or GOOGLE_API_KEY). War Room agents will fail.")
+elif GROQ_API_KEY:
+    logger.info("✅ Groq API key found - using fast Llama 3.3 70B for agents")
+else:
+    logger.warning("⚠️ GROQ_API_KEY not found. Falling back to Gemini (slower, rate limited)")
+
 if not SERPER_API_KEY:
     logger.warning("⚠️ SERPER_API_KEY not found. Search tool disabled.")
 
@@ -62,19 +68,18 @@ def run_war_room(
     """
 
     # Phase A: Minimal buffer (reduced from 15s to 1s to prevent timeouts)
-    # Gemini 2.0 Flash is fast enough; we rely on resilience rather than waiting.
+    # Groq is fast enough for production use
     logger.info("⏳ Phase A: Initializing War Room...")
     time.sleep(1)
 
-    # ---- PRODUCTION OPTIMIZATION (Render) ----
-    # If on Render, skip heavy agents to prevent timeouts and reliable response.
-    # User requested "Simulation Mode" for Production.
-    if os.getenv("RENDER") or os.getenv("FORCE_SIMULATION_MODE"):
-        logger.info("🚀 Production Mode Detected: Skipping heavy AI Agents for speed.")
+    # ---- OPTIONAL: Force simulation mode if needed ----
+    # Set FORCE_SIMULATION_MODE=true in environment to skip agents
+    if os.getenv("FORCE_SIMULATION_MODE") == "true":
+        logger.info("🚀 Simulation Mode: Skipping AI Agents (FORCE_SIMULATION_MODE enabled)")
         return _build_fallback_memo(ticker, lstm_result, regime_result, vix_level, features_summary)
 
     try:
-        # Phase B: Run the crew
+        # Phase B: Run the crew (now enabled in production with Groq!)
         return _execute_crew(ticker, lstm_result, regime_result, vix_level, features_summary)
     except Exception as e:
         # Phase C: Fail-safe — return fallback memo from REAL data
@@ -111,14 +116,29 @@ def _execute_crew(
         _serper_available = False
         logger.warning(f"⚠️ crewai_tools import failed: {e}")
 
-    # ---- LLM Brain (Native CrewAI → LiteLLM → Gemini) ----
-    # gemini-2.0-flash-lite: highest free-tier quota (30 RPM).
-    # Best choice for stable daily usage on Free Tier.
-    llm = LLM(
-        model="gemini/gemini-2.0-flash-lite",
-        api_key=os.getenv("GOOGLE_API_KEY"),
-        temperature=0.2,
-    )
+    # ---- LLM Brain with Automatic Fallback ----
+    # Priority 1: Groq (500+ tokens/sec, perfect for multi-agent systems)
+    # Priority 2: Gemini (fallback if Groq unavailable)
+    
+    groq_key = os.getenv("GROQ_API_KEY")
+    google_key = os.getenv("GOOGLE_API_KEY")
+    
+    if groq_key:
+        logger.info("🚀 Using Groq Llama 3.3 70B (fast inference)")
+        llm = LLM(
+            model="groq/llama-3.3-70b-versatile",
+            api_key=groq_key,
+            temperature=0.2,
+        )
+    elif google_key:
+        logger.warning("⚠️ Groq unavailable, falling back to Gemini 2.0 Flash Lite")
+        llm = LLM(
+            model="gemini/gemini-2.0-flash-lite",
+            api_key=google_key,
+            temperature=0.2,
+        )
+    else:
+        raise ValueError("No LLM API keys configured! Set GROQ_API_KEY or GOOGLE_API_KEY")
 
     # ---- Tool (only for Fundamentalist, if available) ----
     search_tool = None
