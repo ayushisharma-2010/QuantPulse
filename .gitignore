@@ -255,6 +255,18 @@ cython_debug/
 # QuantPulse Specific
 tempCodeRunnerFile.exe
 
+# Database files (SECURITY: Never commit database with user data)
+*.db
+*.sqlite
+*.sqlite3
+quantpulse.db
+
+# Environment files (SECURITY: Contains SECRET_KEY and sensitive config)
+.env
+.env.local
+.env.production
+QuantPulse-Backend/.env
+
 #Models
 *.h5
 *.pkl

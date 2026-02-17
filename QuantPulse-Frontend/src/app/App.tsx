@@ -6,6 +6,7 @@ import { StatisticsPage } from '@/app/pages/StatisticsPage';
 import { ContactPage } from '@/app/pages/ContactPage';
 import { SignInPage } from '@/app/pages/SignInPage';
 import { SignUpPage } from '@/app/pages/SignUpPage';
+import { AuthCallbackPage } from '@/app/pages/AuthCallbackPage';
 import { RiskMapPage } from '@/app/pages/RiskMapPage';
 import { FintechBackground } from '@/app/components/FintechBackground';
 import { AuthProvider } from '@/app/context/AuthContext';
@@ -19,9 +20,11 @@ export default function App() {
         <div className="relative z-10">
           <BrowserRouter>
             <Routes>
+              {/* Home page without navbar */}
+              <Route path="/" element={<HomePage />} />
+
               {/* Routes with Layout (includes navigation) */}
-              <Route path="/" element={<Layout />}>
-                <Route index element={<HomePage />} />
+              <Route element={<Layout />}>
                 <Route path="dashboard" element={
                   <ProtectedRoute>
                     <DashboardPage />
@@ -43,6 +46,7 @@ export default function App() {
               {/* Auth routes without main layout */}
               <Route path="/signin" element={<SignInPage />} />
               <Route path="/signup" element={<SignUpPage />} />
+              <Route path="/auth/callback" element={<AuthCallbackPage />} />
             </Routes>
           </BrowserRouter>
         </div>
