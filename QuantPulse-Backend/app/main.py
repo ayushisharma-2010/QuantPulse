@@ -7,6 +7,7 @@ This is the main FastAPI application file that:
 3. Registers all API routers
 4. Initializes logging and configuration
 5. Sets up the production-grade stock data system
+6. Implements security protections against attacks
 
 Architecture:
 - Multi-provider stock data with automatic fallback
@@ -14,6 +15,7 @@ Architecture:
 - Stale-while-revalidate pattern for optimal performance
 - Automatic demo mode when providers fail
 - Clean separation of concerns with service layers
+- Security middleware for attack prevention
 
 To run this application:
     uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
@@ -22,10 +24,18 @@ Or simply:
     python run.py
 """
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from fastapi.responses import JSONResponse
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+from starlette.middleware.sessions import SessionMiddleware
 import logging
+import time
+import os
 
 # Import configuration and setup
 from app.config import (
@@ -46,10 +56,17 @@ from app.routers import news
 from app.routers import predictions
 from app.routers import ensemble
 from app.routers import v2_analysis
+from app.routers import auth
 
 # Setup logging first
 setup_logging()
 logger = logging.getLogger(__name__)
+
+# =============================================================================
+# Security: Rate Limiting Setup
+# =============================================================================
+
+limiter = Limiter(key_func=get_remote_address)
 
 # =============================================================================
 # Create FastAPI Application
@@ -62,6 +79,74 @@ app = FastAPI(
     docs_url="/docs",       # Swagger UI available at /docs
     redoc_url="/redoc",     # ReDoc available at /redoc
 )
+
+# Add rate limiter to app state
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# =============================================================================
+# Security Middleware
+# =============================================================================
+
+# 1. Session Middleware (Required for OAuth)
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=os.getenv('SECRET_KEY', 'your-secret-key-here')
+)
+
+# 2. Trusted Host Middleware - Prevents Host Header attacks
+app.add_middleware(
+    TrustedHostMiddleware,
+    allowed_hosts=["*"]  # In production: ["yourdomain.com", "*.yourdomain.com"]
+)
+
+# 2. Security Headers Middleware
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    """Add security headers to all responses"""
+    response = await call_next(request)
+    
+    # Prevent clickjacking attacks
+    response.headers["X-Frame-Options"] = "DENY"
+    
+    # Prevent MIME type sniffing
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    
+    # Enable XSS protection
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    
+    # Strict Transport Security (HTTPS only)
+    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    
+    # Content Security Policy
+    response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'"
+    
+    # Referrer Policy
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    
+    # Permissions Policy
+    response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
+    
+    return response
+
+# 3. Request Logging and Monitoring
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    """Log all requests for security monitoring"""
+    start_time = time.time()
+    
+    # Log request details
+    logger.info(f"Request: {request.method} {request.url.path} from {request.client.host}")
+    
+    response = await call_next(request)
+    
+    # Log response time
+    process_time = time.time() - start_time
+    response.headers["X-Process-Time"] = str(process_time)
+    
+    logger.info(f"Response: {response.status_code} in {process_time:.3f}s")
+    
+    return response
 
 # =============================================================================
 # CORS Middleware Configuration
@@ -89,6 +174,7 @@ app.add_middleware(
 # =============================================================================
 
 app.include_router(health.router)
+app.include_router(auth.router)
 app.include_router(stocks.router)
 app.include_router(news.router)
 app.include_router(predictions.router)
@@ -102,6 +188,10 @@ app.include_router(v2_analysis.router)
 @app.on_event("startup")
 async def startup_event():
     """Initialize application on startup"""
+    
+    # Initialize database
+    from app.database import init_db
+    init_db()
     
     # Validate configuration and log startup information
     config_status = validate_and_log_configuration()
