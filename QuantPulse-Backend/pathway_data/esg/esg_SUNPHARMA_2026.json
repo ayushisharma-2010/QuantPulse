@@ -1,0 +1,40 @@
+{
+  "symbol": "SUNPHARMA.NS",
+  "company_name": "Sun Pharmaceutical Industries",
+  "report_date": "2026-01-26",
+  "report_year": 2026,
+  "overall_score": 53.6,
+  "category": "medium",
+  "rating": "C",
+  "environmental": {
+    "carbon_emissions_score": 60.2,
+    "water_usage_score": 53.9,
+    "renewable_energy_score": 39.6,
+    "waste_management_score": 56.4,
+    "overall": 52.5
+  },
+  "social": {
+    "board_diversity_score": 48.0,
+    "employee_satisfaction_score": 49.1,
+    "community_engagement_score": 48.2,
+    "overall": 48.5
+  },
+  "governance": {
+    "governance_score": 62.4,
+    "board_independence_score": 50.6,
+    "transparency_score": 54.5,
+    "overall": 55.8
+  },
+  "highlights": [
+    "Sustainable supply chain management",
+    "Industry-leading employee satisfaction scores",
+    "Significant reduction in carbon emissions year-over-year"
+  ],
+  "concerns": [
+    "Waste management practices require enhancement",
+    "Carbon emissions reduction targets need acceleration",
+    "Community engagement programs need expansion",
+    "Governance transparency could be strengthened"
+  ],
+  "generated_at": "2026-02-26T10:45:29.503769"
+}

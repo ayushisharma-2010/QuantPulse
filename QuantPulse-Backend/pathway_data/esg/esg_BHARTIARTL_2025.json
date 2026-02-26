@@ -1,0 +1,41 @@
+{
+  "symbol": "BHARTIARTL.NS",
+  "company_name": "Bharti Airtel Limited",
+  "report_date": "2025-09-15",
+  "report_year": 2025,
+  "overall_score": 82.0,
+  "category": "high",
+  "rating": "A",
+  "environmental": {
+    "carbon_emissions_score": 87.5,
+    "water_usage_score": 73.9,
+    "renewable_energy_score": 96.0,
+    "waste_management_score": 72.2,
+    "overall": 82.4
+  },
+  "social": {
+    "board_diversity_score": 71.7,
+    "employee_satisfaction_score": 86.3,
+    "community_engagement_score": 76.6,
+    "overall": 78.2
+  },
+  "governance": {
+    "governance_score": 91.2,
+    "board_independence_score": 67.9,
+    "transparency_score": 72.8,
+    "overall": 77.3
+  },
+  "highlights": [
+    "Active community development programs",
+    "Sustainable supply chain management",
+    "Strong ethical business practices",
+    "Robust corporate governance framework",
+    "Transparent reporting and stakeholder engagement",
+    "Industry-leading employee satisfaction scores"
+  ],
+  "concerns": [
+    "Water usage efficiency below industry average",
+    "Carbon emissions reduction targets need acceleration"
+  ],
+  "generated_at": "2026-02-26T10:45:29.494302"
+}

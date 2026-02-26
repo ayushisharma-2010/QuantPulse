@@ -46,3 +46,11 @@ crewai==0.100.1
 crewai-tools>=0.32.1,<0.70.0
 langchain-core==0.3.27
 langchain-groq==0.2.1
+
+# Pathway Real-Time Streaming Framework
+pathway>=0.13.0
+openai>=1.0.0  # For embeddings and LLM
+tiktoken>=0.5.0  # Token counting for chunking
+sentence-transformers>=2.2.0  # Alternative embeddings
+rank-bm25>=0.2.2  # BM25 search
+sse-starlette>=1.6.5  # Server-Sent Events for FastAPI

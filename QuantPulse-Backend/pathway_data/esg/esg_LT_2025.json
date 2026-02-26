@@ -1,0 +1,38 @@
+{
+  "symbol": "LT.NS",
+  "company_name": "Larsen & Toubro Limited",
+  "report_date": "2025-09-01",
+  "report_year": 2025,
+  "overall_score": 60.4,
+  "category": "medium",
+  "rating": "B",
+  "environmental": {
+    "carbon_emissions_score": 67.5,
+    "water_usage_score": 65.1,
+    "renewable_energy_score": 46.4,
+    "waste_management_score": 67.2,
+    "overall": 61.6
+  },
+  "social": {
+    "board_diversity_score": 48.3,
+    "employee_satisfaction_score": 55.5,
+    "community_engagement_score": 56.8,
+    "overall": 53.5
+  },
+  "governance": {
+    "governance_score": 66.9,
+    "board_independence_score": 60.6,
+    "transparency_score": 62.3,
+    "overall": 63.2
+  },
+  "highlights": [
+    "Strong commitment to renewable energy transition",
+    "Robust corporate governance framework"
+  ],
+  "concerns": [
+    "Governance transparency could be strengthened",
+    "Waste management practices require enhancement",
+    "Board independence could be improved"
+  ],
+  "generated_at": "2026-02-26T10:45:29.498620"
+}

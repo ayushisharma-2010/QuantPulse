@@ -1,0 +1,40 @@
+{
+  "symbol": "RELIANCE.NS",
+  "company_name": "Reliance Industries Limited",
+  "report_date": "2025-10-30",
+  "report_year": 2025,
+  "overall_score": 86.3,
+  "category": "high",
+  "rating": "A",
+  "environmental": {
+    "carbon_emissions_score": 91.3,
+    "water_usage_score": 79.6,
+    "renewable_energy_score": 80.9,
+    "waste_management_score": 92.5,
+    "overall": 86.1
+  },
+  "social": {
+    "board_diversity_score": 99.0,
+    "employee_satisfaction_score": 82.0,
+    "community_engagement_score": 91.3,
+    "overall": 90.7
+  },
+  "governance": {
+    "governance_score": 86.0,
+    "board_independence_score": 82.5,
+    "transparency_score": 76.7,
+    "overall": 81.7
+  },
+  "highlights": [
+    "Sustainable supply chain management",
+    "Robust corporate governance framework",
+    "Transparent reporting and stakeholder engagement",
+    "Active community development programs",
+    "Excellent board diversity and gender representation"
+  ],
+  "concerns": [
+    "Community engagement programs need expansion",
+    "Employee diversity metrics need improvement"
+  ],
+  "generated_at": "2026-02-26T10:45:29.479372"
+}

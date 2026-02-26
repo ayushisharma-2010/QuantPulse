@@ -1,0 +1,41 @@
+{
+  "symbol": "SBIN.NS",
+  "company_name": "State Bank of India",
+  "report_date": "2025-10-28",
+  "report_year": 2025,
+  "overall_score": 61.0,
+  "category": "medium",
+  "rating": "B",
+  "environmental": {
+    "carbon_emissions_score": 65.4,
+    "water_usage_score": 59.5,
+    "renewable_energy_score": 60.4,
+    "waste_management_score": 58.4,
+    "overall": 60.9
+  },
+  "social": {
+    "board_diversity_score": 67.6,
+    "employee_satisfaction_score": 57.7,
+    "community_engagement_score": 50.6,
+    "overall": 58.7
+  },
+  "governance": {
+    "governance_score": 61.9,
+    "board_independence_score": 58.2,
+    "transparency_score": 59.9,
+    "overall": 60.0
+  },
+  "highlights": [
+    "Water conservation initiatives showing results",
+    "Significant reduction in carbon emissions year-over-year",
+    "Sustainable supply chain management",
+    "Transparent reporting and stakeholder engagement"
+  ],
+  "concerns": [
+    "Waste management practices require enhancement",
+    "Limited disclosure on supply chain sustainability",
+    "Governance transparency could be strengthened",
+    "Employee diversity metrics need improvement"
+  ],
+  "generated_at": "2026-02-26T10:45:29.492868"
+}

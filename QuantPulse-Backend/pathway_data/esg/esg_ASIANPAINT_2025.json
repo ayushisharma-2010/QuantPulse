@@ -1,0 +1,37 @@
+{
+  "symbol": "ASIANPAINT.NS",
+  "company_name": "Asian Paints Limited",
+  "report_date": "2025-11-05",
+  "report_year": 2025,
+  "overall_score": 69.8,
+  "category": "medium",
+  "rating": "B",
+  "environmental": {
+    "carbon_emissions_score": 70.5,
+    "water_usage_score": 69.0,
+    "renewable_energy_score": 77.3,
+    "waste_management_score": 70.3,
+    "overall": 71.8
+  },
+  "social": {
+    "board_diversity_score": 81.8,
+    "employee_satisfaction_score": 71.7,
+    "community_engagement_score": 70.3,
+    "overall": 74.6
+  },
+  "governance": {
+    "governance_score": 64.2,
+    "board_independence_score": 56.7,
+    "transparency_score": 73.4,
+    "overall": 64.8
+  },
+  "highlights": [
+    "Significant reduction in carbon emissions year-over-year",
+    "Industry-leading employee satisfaction scores"
+  ],
+  "concerns": [
+    "Governance transparency could be strengthened",
+    "Renewable energy adoption lagging peers"
+  ],
+  "generated_at": "2026-02-26T10:45:29.514064"
+}

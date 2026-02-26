@@ -1,0 +1,38 @@
+{
+  "symbol": "MARUTI.NS",
+  "company_name": "Maruti Suzuki India Limited",
+  "report_date": "2026-01-07",
+  "report_year": 2026,
+  "overall_score": 49.6,
+  "category": "medium",
+  "rating": "C",
+  "environmental": {
+    "carbon_emissions_score": 45.5,
+    "water_usage_score": 55.3,
+    "renewable_energy_score": 54.1,
+    "waste_management_score": 47.7,
+    "overall": 50.6
+  },
+  "social": {
+    "board_diversity_score": 36.9,
+    "employee_satisfaction_score": 49.9,
+    "community_engagement_score": 54.0,
+    "overall": 46.9
+  },
+  "governance": {
+    "governance_score": 54.1,
+    "board_independence_score": 48.5,
+    "transparency_score": 49.3,
+    "overall": 50.6
+  },
+  "highlights": [
+    "Robust corporate governance framework",
+    "Strong ethical business practices",
+    "Sustainable supply chain management"
+  ],
+  "concerns": [
+    "Water usage efficiency below industry average",
+    "Community engagement programs need expansion"
+  ],
+  "generated_at": "2026-02-26T10:45:29.501951"
+}

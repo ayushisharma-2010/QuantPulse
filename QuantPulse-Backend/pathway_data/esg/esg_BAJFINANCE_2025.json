@@ -1,0 +1,40 @@
+{
+  "symbol": "BAJFINANCE.NS",
+  "company_name": "Bajaj Finance Limited",
+  "report_date": "2025-09-05",
+  "report_year": 2025,
+  "overall_score": 69.4,
+  "category": "medium",
+  "rating": "B",
+  "environmental": {
+    "carbon_emissions_score": 76.2,
+    "water_usage_score": 57.8,
+    "renewable_energy_score": 73.5,
+    "waste_management_score": 71.3,
+    "overall": 69.7
+  },
+  "social": {
+    "board_diversity_score": 56.7,
+    "employee_satisfaction_score": 76.0,
+    "community_engagement_score": 61.0,
+    "overall": 64.6
+  },
+  "governance": {
+    "governance_score": 69.7,
+    "board_independence_score": 77.3,
+    "transparency_score": 65.5,
+    "overall": 70.8
+  },
+  "highlights": [
+    "Excellent board diversity and gender representation",
+    "Robust corporate governance framework",
+    "Water conservation initiatives showing results",
+    "Strong ethical business practices"
+  ],
+  "concerns": [
+    "Renewable energy adoption lagging peers",
+    "Water usage efficiency below industry average",
+    "Community engagement programs need expansion"
+  ],
+  "generated_at": "2026-02-26T10:45:29.511443"
+}

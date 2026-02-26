@@ -1,0 +1,2 @@
+# This file ensures the news/ directory is tracked by git
+# News JSON files will be added here by seed_news.py
