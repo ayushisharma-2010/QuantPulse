@@ -1,0 +1,37 @@
+{
+  "symbol": "TCS.NS",
+  "company_name": "Tata Consultancy Services",
+  "report_date": "2025-10-08",
+  "report_year": 2025,
+  "overall_score": 55.9,
+  "category": "medium",
+  "rating": "C",
+  "environmental": {
+    "carbon_emissions_score": 54.9,
+    "water_usage_score": 44.6,
+    "renewable_energy_score": 65.3,
+    "waste_management_score": 49.6,
+    "overall": 53.6
+  },
+  "social": {
+    "board_diversity_score": 56.1,
+    "employee_satisfaction_score": 56.8,
+    "community_engagement_score": 58.4,
+    "overall": 57.1
+  },
+  "governance": {
+    "governance_score": 58.5,
+    "board_independence_score": 58.8,
+    "transparency_score": 48.2,
+    "overall": 55.1
+  },
+  "highlights": [
+    "Sustainable supply chain management",
+    "Industry-leading employee satisfaction scores"
+  ],
+  "concerns": [
+    "Limited disclosure on supply chain sustainability",
+    "Renewable energy adoption lagging peers"
+  ],
+  "generated_at": "2026-02-26T10:45:29.481275"
+}

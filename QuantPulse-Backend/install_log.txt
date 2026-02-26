@@ -1,0 +1,75 @@
+Defaulting to user installation because normal site-packages is not writeable
+Collecting fastapi==0.115.6 (from -r requirements.txt (line 4))
+  Using cached fastapi-0.115.6-py3-none-any.whl.metadata (27 kB)
+Collecting uvicorn==0.34.0 (from uvicorn[standard]==0.34.0->-r requirements.txt (line 5))
+  Using cached uvicorn-0.34.0-py3-none-any.whl.metadata (6.5 kB)
+Collecting python-dotenv==1.0.1 (from -r requirements.txt (line 6))
+  Using cached python_dotenv-1.0.1-py3-none-any.whl.metadata (23 kB)
+Collecting pydantic<2.11.0,>=2.4.1 (from -r requirements.txt (line 7))
+  Using cached pydantic-2.10.6-py3-none-any.whl.metadata (30 kB)
+Requirement already satisfied: starlette>=0.27.0 in c:\users\raja\appdata\roaming\python\python313\site-packages (from -r requirements.txt (line 9)) (0.41.3)
+Requirement already satisfied: sqlalchemy>=2.0.0 in c:\users\raja\appdata\roaming\python\python313\site-packages (from -r requirements.txt (line 12)) (2.0.36)
+Requirement already satisfied: psycopg2-binary>=2.9.9 in c:\users\raja\appdata\roaming\python\python313\site-packages (from -r requirements.txt (line 13)) (2.9.11)
+Requirement already satisfied: alembic>=1.13.0 in c:\users\raja\appdata\roaming\python\python313\site-packages (from -r requirements.txt (line 14)) (1.18.4)
+Requirement already satisfied: python-jose>=3.3.0 in c:\users\raja\appdata\roaming\python\python313\site-packages (from python-jose[cryptography]>=3.3.0->-r requirements.txt (line 17)) (3.5.0)
+Requirement already satisfied: passlib>=1.7.4 in c:\users\raja\appdata\roaming\python\python313\site-packages (from passlib[bcrypt]>=1.7.4->-r requirements.txt (line 18)) (1.7.4)
+Requirement already satisfied: bcrypt==4.1.3 in c:\users\raja\appdata\roaming\python\python313\site-packages (from -r requirements.txt (line 19)) (4.1.3)
+Requirement already satisfied: python-multipart>=0.0.6 in c:\users\raja\appdata\roaming\python\python313\site-packages (from -r requirements.txt (line 20)) (0.0.20)
+Requirement already satisfied: slowapi>=0.1.9 in c:\users\raja\appdata\roaming\python\python313\site-packages (from -r requirements.txt (line 21)) (0.1.9)
+Requirement already satisfied: authlib>=1.3.0 in c:\users\raja\appdata\roaming\python\python313\site-packages (from -r requirements.txt (line 22)) (1.6.8)
+Requirement already satisfied: itsdangerous>=2.1.2 in c:\users\raja\appdata\roaming\python\python313\site-packages (from -r requirements.txt (line 23)) (2.2.0)
+Requirement already satisfied: httpx>=0.27.0 in c:\users\raja\appdata\roaming\python\python313\site-packages (from -r requirements.txt (line 26)) (0.28.1)
+Requirement already satisfied: cachetools>=5.3.0 in c:\users\raja\appdata\roaming\python\python313\site-packages (from -r requirements.txt (line 27)) (6.1.0)
+Collecting yfinance==0.2.51 (from -r requirements.txt (line 30))
+  Using cached yfinance-0.2.51-py2.py3-none-any.whl.metadata (5.5 kB)
+Collecting pandas==2.2.3 (from -r requirements.txt (line 31))
+  Using cached pandas-2.2.3-cp313-cp313-win_amd64.whl.metadata (19 kB)
+Collecting numpy<2.0.0,>=1.23.5 (from -r requirements.txt (line 32))
+  Using cached numpy-1.26.4.tar.gz (15.8 MB)
+  Installing build dependencies: started
+  Installing build dependencies: finished with status 'done'
+  Getting requirements to build wheel: started
+  Getting requirements to build wheel: finished with status 'done'
+  Installing backend dependencies: started
+  Installing backend dependencies: finished with status 'done'
+  Preparing metadata (pyproject.toml): started
+  Preparing metadata (pyproject.toml): finished with status 'error'
+  error: subprocess-exited-with-error
+  
+  Preparing metadata (pyproject.toml) did not run successfully.
+  exit code: 1
+  
+  [19 lines of output]
+  + C:\Program Files\Python313\python.exe C:\Users\RAJA\AppData\Local\Temp\pip-install-fcjs2e56\numpy_9076f8041c39474281d1cbc7758291a9\vendored-meson\meson\meson.py setup C:\Users\RAJA\AppData\Local\Temp\pip-install-fcjs2e56\numpy_9076f8041c39474281d1cbc7758291a9 C:\Users\RAJA\AppData\Local\Temp\pip-install-fcjs2e56\numpy_9076f8041c39474281d1cbc7758291a9\.mesonpy-cesc466c -Dbuildtype=release -Db_ndebug=if-release -Db_vscrt=md --native-file=C:\Users\RAJA\AppData\Local\Temp\pip-install-fcjs2e56\numpy_9076f8041c39474281d1cbc7758291a9\.mesonpy-cesc466c\meson-python-native-file.ini
+  The Meson build system
+  Version: 1.2.99
+  Source dir: C:\Users\RAJA\AppData\Local\Temp\pip-install-fcjs2e56\numpy_9076f8041c39474281d1cbc7758291a9
+  Build dir: C:\Users\RAJA\AppData\Local\Temp\pip-install-fcjs2e56\numpy_9076f8041c39474281d1cbc7758291a9\.mesonpy-cesc466c
+  Build type: native build
+  Project name: NumPy
+  Project version: 1.26.4
+  C compiler for the host machine: gcc (gcc 6.3.0 "gcc (MinGW.org GCC-6.3.0-1) 6.3.0")
+  C linker for the host machine: gcc ld.bfd 2.28
+  C++ compiler for the host machine: c++ (gcc 6.3.0 "c++ (MinGW.org GCC-6.3.0-1) 6.3.0")
+  C++ linker for the host machine: c++ ld.bfd 2.28
+  Cython compiler for the host machine: cython (cython 3.0.12)
+  Host machine cpu family: x86
+  Host machine cpu: x86
+  
+  ..\meson.build:28:4: ERROR: Problem encountered: NumPy requires GCC >= 8.4
+  
+  A full log can be found at C:\Users\RAJA\AppData\Local\Temp\pip-install-fcjs2e56\numpy_9076f8041c39474281d1cbc7758291a9\.mesonpy-cesc466c\meson-logs\meson-log.txt
+  [end of output]
+  
+  note: This error originates from a subprocess, and is likely not a problem with pip.
+
+[notice] A new release of pip is available: 25.3 -> 26.0.1
+[notice] To update, run: python.exe -m pip install --upgrade pip
+error: metadata-generation-failed
+
+Encountered error while generating package metadata.
+
+numpy
+
+note: This is an issue with the package mentioned above, not pip.
+hint: See above for details.

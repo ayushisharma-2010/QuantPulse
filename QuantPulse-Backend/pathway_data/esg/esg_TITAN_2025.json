@@ -1,0 +1,41 @@
+{
+  "symbol": "TITAN.NS",
+  "company_name": "Titan Company Limited",
+  "report_date": "2025-09-21",
+  "report_year": 2025,
+  "overall_score": 73.9,
+  "category": "medium",
+  "rating": "B",
+  "environmental": {
+    "carbon_emissions_score": 63.2,
+    "water_usage_score": 76.2,
+    "renewable_energy_score": 93.9,
+    "waste_management_score": 65.4,
+    "overall": 74.7
+  },
+  "social": {
+    "board_diversity_score": 63.2,
+    "employee_satisfaction_score": 78.4,
+    "community_engagement_score": 74.7,
+    "overall": 72.1
+  },
+  "governance": {
+    "governance_score": 77.6,
+    "board_independence_score": 65.0,
+    "transparency_score": 84.4,
+    "overall": 75.7
+  },
+  "highlights": [
+    "Industry-leading employee satisfaction scores",
+    "Excellent board diversity and gender representation",
+    "Sustainable supply chain management",
+    "Water conservation initiatives showing results"
+  ],
+  "concerns": [
+    "Waste management practices require enhancement",
+    "ESG reporting frequency should increase",
+    "Limited disclosure on supply chain sustainability",
+    "Renewable energy adoption lagging peers"
+  ],
+  "generated_at": "2026-02-26T10:45:29.505054"
+}

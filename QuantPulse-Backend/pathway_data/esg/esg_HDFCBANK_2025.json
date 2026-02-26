@@ -1,0 +1,37 @@
+{
+  "symbol": "HDFCBANK.NS",
+  "company_name": "HDFC Bank Limited",
+  "report_date": "2025-10-10",
+  "report_year": 2025,
+  "overall_score": 60.5,
+  "category": "medium",
+  "rating": "B",
+  "environmental": {
+    "carbon_emissions_score": 47.6,
+    "water_usage_score": 68.3,
+    "renewable_energy_score": 51.4,
+    "waste_management_score": 49.7,
+    "overall": 54.3
+  },
+  "social": {
+    "board_diversity_score": 61.4,
+    "employee_satisfaction_score": 65.8,
+    "community_engagement_score": 59.7,
+    "overall": 62.3
+  },
+  "governance": {
+    "governance_score": 67.8,
+    "board_independence_score": 61.9,
+    "transparency_score": 69.1,
+    "overall": 66.3
+  },
+  "highlights": [
+    "Industry-leading employee satisfaction scores",
+    "Water conservation initiatives showing results"
+  ],
+  "concerns": [
+    "Limited disclosure on supply chain sustainability",
+    "Renewable energy adoption lagging peers"
+  ],
+  "generated_at": "2026-02-26T10:45:29.485342"
+}

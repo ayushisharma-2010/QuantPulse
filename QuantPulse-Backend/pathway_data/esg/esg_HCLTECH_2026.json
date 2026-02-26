@@ -1,0 +1,40 @@
+{
+  "symbol": "HCLTECH.NS",
+  "company_name": "HCL Technologies Limited",
+  "report_date": "2026-01-02",
+  "report_year": 2026,
+  "overall_score": 59.9,
+  "category": "medium",
+  "rating": "C",
+  "environmental": {
+    "carbon_emissions_score": 74.1,
+    "water_usage_score": 67.1,
+    "renewable_energy_score": 53.2,
+    "waste_management_score": 58.1,
+    "overall": 63.1
+  },
+  "social": {
+    "board_diversity_score": 46.2,
+    "employee_satisfaction_score": 62.5,
+    "community_engagement_score": 61.7,
+    "overall": 56.8
+  },
+  "governance": {
+    "governance_score": 53.5,
+    "board_independence_score": 59.9,
+    "transparency_score": 64.7,
+    "overall": 59.4
+  },
+  "highlights": [
+    "Robust corporate governance framework",
+    "Water conservation initiatives showing results",
+    "Excellent board diversity and gender representation"
+  ],
+  "concerns": [
+    "Waste management practices require enhancement",
+    "Limited disclosure on supply chain sustainability",
+    "Renewable energy adoption lagging peers",
+    "Water usage efficiency below industry average"
+  ],
+  "generated_at": "2026-02-26T10:45:29.508569"
+}

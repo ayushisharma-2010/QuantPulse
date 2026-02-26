@@ -1,0 +1,2 @@
+# This file ensures the esg/ directory is tracked by git
+# ESG reports will be added here by seed_esg.py

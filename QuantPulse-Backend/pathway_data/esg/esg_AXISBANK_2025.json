@@ -1,0 +1,38 @@
+{
+  "symbol": "AXISBANK.NS",
+  "company_name": "Axis Bank Limited",
+  "report_date": "2025-10-07",
+  "report_year": 2025,
+  "overall_score": 68.5,
+  "category": "medium",
+  "rating": "B",
+  "environmental": {
+    "carbon_emissions_score": 75.4,
+    "water_usage_score": 66.4,
+    "renewable_energy_score": 74.4,
+    "waste_management_score": 71.4,
+    "overall": 71.9
+  },
+  "social": {
+    "board_diversity_score": 53.2,
+    "employee_satisfaction_score": 71.7,
+    "community_engagement_score": 75.4,
+    "overall": 66.8
+  },
+  "governance": {
+    "governance_score": 61.8,
+    "board_independence_score": 79.2,
+    "transparency_score": 60.1,
+    "overall": 67.0
+  },
+  "highlights": [
+    "Sustainable supply chain management",
+    "Transparent reporting and stakeholder engagement",
+    "Strong commitment to renewable energy transition"
+  ],
+  "concerns": [
+    "Board independence could be improved",
+    "Employee diversity metrics need improvement"
+  ],
+  "generated_at": "2026-02-26T10:45:29.500422"
+}

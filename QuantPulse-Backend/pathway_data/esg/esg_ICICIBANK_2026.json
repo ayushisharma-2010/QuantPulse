@@ -1,0 +1,40 @@
+{
+  "symbol": "ICICIBANK.NS",
+  "company_name": "ICICI Bank Limited",
+  "report_date": "2026-01-16",
+  "report_year": 2026,
+  "overall_score": 83.3,
+  "category": "high",
+  "rating": "A",
+  "environmental": {
+    "carbon_emissions_score": 78.7,
+    "water_usage_score": 85.5,
+    "renewable_energy_score": 90.7,
+    "waste_management_score": 81.0,
+    "overall": 84.0
+  },
+  "social": {
+    "board_diversity_score": 70.3,
+    "employee_satisfaction_score": 88.4,
+    "community_engagement_score": 85.2,
+    "overall": 81.3
+  },
+  "governance": {
+    "governance_score": 89.6,
+    "board_independence_score": 82.8,
+    "transparency_score": 70.1,
+    "overall": 80.8
+  },
+  "highlights": [
+    "Water conservation initiatives showing results",
+    "Excellent board diversity and gender representation",
+    "Industry-leading employee satisfaction scores",
+    "Strong ethical business practices",
+    "Active community development programs"
+  ],
+  "concerns": [
+    "Waste management practices require enhancement",
+    "Limited disclosure on supply chain sustainability"
+  ],
+  "generated_at": "2026-02-26T10:45:29.486884"
+}

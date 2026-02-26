@@ -1,0 +1,39 @@
+{
+  "symbol": "INFY.NS",
+  "company_name": "Infosys Limited",
+  "report_date": "2026-01-10",
+  "report_year": 2026,
+  "overall_score": 67.9,
+  "category": "medium",
+  "rating": "B",
+  "environmental": {
+    "carbon_emissions_score": 75.2,
+    "water_usage_score": 74.0,
+    "renewable_energy_score": 64.5,
+    "waste_management_score": 76.4,
+    "overall": 72.5
+  },
+  "social": {
+    "board_diversity_score": 67.4,
+    "employee_satisfaction_score": 62.8,
+    "community_engagement_score": 60.8,
+    "overall": 63.7
+  },
+  "governance": {
+    "governance_score": 67.6,
+    "board_independence_score": 59.6,
+    "transparency_score": 69.4,
+    "overall": 65.5
+  },
+  "highlights": [
+    "Transparent reporting and stakeholder engagement",
+    "Significant reduction in carbon emissions year-over-year",
+    "Strong commitment to renewable energy transition",
+    "Water conservation initiatives showing results"
+  ],
+  "concerns": [
+    "Renewable energy adoption lagging peers",
+    "Board independence could be improved"
+  ],
+  "generated_at": "2026-02-26T10:45:29.482795"
+}

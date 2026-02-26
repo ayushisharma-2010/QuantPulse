@@ -1,0 +1,40 @@
+{
+  "symbol": "WIPRO.NS",
+  "company_name": "Wipro Limited",
+  "report_date": "2025-10-06",
+  "report_year": 2025,
+  "overall_score": 53.0,
+  "category": "medium",
+  "rating": "C",
+  "environmental": {
+    "carbon_emissions_score": 41.3,
+    "water_usage_score": 59.2,
+    "renewable_energy_score": 44.1,
+    "waste_management_score": 60.7,
+    "overall": 51.3
+  },
+  "social": {
+    "board_diversity_score": 54.5,
+    "employee_satisfaction_score": 55.4,
+    "community_engagement_score": 63.1,
+    "overall": 57.7
+  },
+  "governance": {
+    "governance_score": 58.5,
+    "board_independence_score": 48.5,
+    "transparency_score": 54.6,
+    "overall": 53.9
+  },
+  "highlights": [
+    "Active community development programs",
+    "Sustainable supply chain management",
+    "Transparent reporting and stakeholder engagement"
+  ],
+  "concerns": [
+    "Board independence could be improved",
+    "Limited disclosure on supply chain sustainability",
+    "Water usage efficiency below industry average",
+    "Employee diversity metrics need improvement"
+  ],
+  "generated_at": "2026-02-26T10:45:29.506715"
+}
