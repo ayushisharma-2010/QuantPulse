@@ -2,7 +2,7 @@
  * QuantPulse Backend API Service
  *
  * This module provides functions to interact with the FastAPI backend.
- * All API calls are made to the local backend server running on port 8000.
+ * All outputs are for research and decision support — not financial advice.
  */
 
 const API_BASE_URL =
@@ -150,7 +150,7 @@ export async function fetchNewsSentiment(
 }
 
 /**
- * Fetch AI prediction for a symbol
+ * Fetch AI analysis for a symbol (research output, not a recommendation)
  */
 export async function fetchAIPrediction(
   symbol: string,
@@ -192,7 +192,7 @@ export function getSentimentIndex(label: string): number {
 }
 
 // =============================================================================
-// Ensemble Prediction Types & Functions
+// Ensemble Scenario Analysis Types & Functions
 // =============================================================================
 
 export interface EnsemblePredictionData {
@@ -248,7 +248,7 @@ export interface EnsemblePredictionData {
 }
 
 /**
- * Fetch ensemble prediction for a symbol
+ * Fetch ensemble scenario analysis for a symbol
  * Combines Quant, Topology, and Sentiment agents
  */
 export async function fetchEnsemblePrediction(
@@ -297,7 +297,7 @@ export async function fetchEnsemblePredictionGet(
 }
 
 // =============================================================================
-// V2 AI Analysis (LSTM + HMM + War Room)
+// V2 AI Analysis (LSTM + HMM + Research Agents)
 // =============================================================================
 
 export interface V2AnalysisData {
@@ -339,7 +339,7 @@ export interface V2AnalysisData {
 }
 
 /**
- * Fetch V2 AI analysis (LSTM + HMM regime + War Room agents)
+ * Fetch V2 AI analysis (LSTM + HMM regime + Research Desk agents)
  */
 export async function fetchV2Analysis(
   symbol: string,

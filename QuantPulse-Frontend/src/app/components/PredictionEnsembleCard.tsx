@@ -1,8 +1,8 @@
 /**
  * PredictionEnsembleCard Component
  *
- * Displays the Agentic Ensemble prediction that fuses:
- * 1. Quant Agent (LSTM/GNN base forecast)
+ * Displays the Agentic Ensemble scenario analysis that fuses:
+ * 1. Quant Agent (LSTM/GNN base assessment)
  * 2. Topology Agent (Graph Laplacian risk analysis)
  * 3. Sentiment Agent (News/sentiment consensus)
  *
@@ -11,6 +11,7 @@
  * - Comparison Chart: LSTM Base vs Agentic Adjusted
  * - Real-time updates based on selected ticker
  * - Market shock simulation integration
+ * - For research purposes only — not financial advice
  */
 
 import { useState, useEffect, useMemo } from "react";
@@ -317,7 +318,7 @@ export function PredictionEnsembleCard({
               Agentic Ensemble
             </h3>
             <p className="text-xs text-zinc-500">
-              Multi-Agent Prediction System
+              Multi-Agent Scenario Analysis
             </p>
           </div>
         </div>
@@ -366,7 +367,7 @@ export function PredictionEnsembleCard({
           </h3>
         </div>
         <p className="text-sm text-zinc-400">
-          Select a stock to see ensemble prediction
+          Select a stock to see ensemble scenario analysis
         </p>
       </Card>
     );
@@ -402,7 +403,7 @@ export function PredictionEnsembleCard({
             Agentic Ensemble
           </h3>
           <p className="text-xs text-zinc-500">
-            Multi-Agent Weighted Prediction
+            Multi-Agent Scenario Analysis
           </p>
         </div>
       </div>
@@ -426,7 +427,7 @@ export function PredictionEnsembleCard({
           </div>
 
           <div className="p-4 rounded-xl bg-zinc-900/30 border border-zinc-800/50">
-            <p className="text-xs text-zinc-500 mb-1">Weighted Prediction</p>
+            <p className="text-xs text-zinc-500 mb-1">Weighted Scenario</p>
             <p className="text-2xl font-bold text-zinc-100">
               ₹
               {data.weighted_prediction.toLocaleString("en-IN", {
@@ -619,11 +620,10 @@ export function PredictionEnsembleCard({
                   (neighbor, idx) => (
                     <span
                       key={idx}
-                      className={`px-2 py-1 rounded text-xs ${
-                        neighbor.signal === "bullish"
+                      className={`px-2 py-1 rounded text-xs ${neighbor.signal === "bullish"
                           ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
                           : "bg-red-500/10 text-red-400 border border-red-500/20"
-                      }`}
+                        }`}
                     >
                       {neighbor.symbol}: {neighbor.signal}
                     </span>

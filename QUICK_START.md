@@ -8,7 +8,8 @@ Open a new terminal and run:
 cd QuantPulse-Backend
 python pathway_pipeline.py
 ```
-✅ Wait for: `Uvicorn running on http://0.0.0.0:8090`
+✅ On **Linux/WSL**: Wait for `Starting Pathway engine (pw.run)...` — stock data streams automatically every 60s
+✅ On **Windows**: Falls back to standalone mode — `Uvicorn running on http://0.0.0.0:8090`
 
 ### Step 2: Start Main Backend
 Open a **second** terminal and run:

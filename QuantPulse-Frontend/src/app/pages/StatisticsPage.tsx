@@ -14,7 +14,7 @@ export function StatisticsPage() {
     { name: 'Others', value: 8 },
   ];
 
-  const predictionAccuracy = [
+  const analysisCoverage = [
     { month: 'Jan', accuracy: 78 },
     { month: 'Feb', accuracy: 82 },
     { month: 'Mar', accuracy: 80 },
@@ -38,8 +38,8 @@ export function StatisticsPage() {
   ];
 
   const marketOverview = [
-    { icon: TrendingUp, label: 'Total Predictions', value: '15,234', change: '+12.5%', positive: true },
-    { icon: Target, label: 'Accurate Predictions', value: '12,945', change: '+8.3%', positive: true },
+    { icon: TrendingUp, label: 'Total Analyses', value: '15,234', change: '+12.5%', positive: true },
+    { icon: Target, label: 'Regime Detections', value: '12,945', change: '+8.3%', positive: true },
     { icon: Users, label: 'Active Users', value: '8,456', change: '+24.1%', positive: true },
     { icon: Activity, label: 'Daily Transactions', value: '45.2K', change: '-3.2%', positive: false },
   ];
@@ -87,14 +87,14 @@ export function StatisticsPage() {
 
         {/* Charts Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Prediction Accuracy Trend */}
+          {/* Analysis Coverage Trend */}
           <Card className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg text-zinc-100">Prediction Accuracy Trend</h3>
+              <h3 className="text-lg text-zinc-100">Analysis Coverage Trend</h3>
               <span className="text-[10px] text-zinc-500 uppercase tracking-wider">Simulated Historical Data</span>
             </div>
             <ResponsiveContainer width="100%" height={250}>
-              <LineChart data={predictionAccuracy}>
+              <LineChart data={analysisCoverage}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
                 <XAxis dataKey="month" stroke="#71717a" />
                 <YAxis stroke="#71717a" domain={[70, 90]} />
@@ -205,14 +205,14 @@ export function StatisticsPage() {
               <p className="text-xs text-zinc-500 mt-1">Last 30 days (Simulated)</p>
             </div>
             <div className="border-l-4 border-emerald-600 pl-4">
-              <p className="text-sm text-zinc-400 mb-1">Successful Predictions</p>
+              <p className="text-sm text-zinc-400 mb-1">Regime Alignment Rate</p>
               <p className="text-2xl text-zinc-100 font-bold">12,945</p>
               <p className="text-xs text-zinc-500 mt-1">Out of 15,234 total (Simulated)</p>
             </div>
             <div className="border-l-4 border-amber-600 pl-4">
               <p className="text-sm text-zinc-400 mb-1">Average Confidence</p>
               <p className="text-2xl text-zinc-100 font-bold">76.8%</p>
-              <p className="text-xs text-zinc-500 mt-1">Across all predictions</p>
+              <p className="text-xs text-zinc-500 mt-1">Across all analyses</p>
             </div>
           </div>
         </Card>

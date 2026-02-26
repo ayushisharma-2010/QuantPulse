@@ -161,19 +161,24 @@ def _execute_crew(
     bollinger = features_summary.get("bollinger_pctb", 0.5)
 
     # =====================================================================
-    # AGENT 1: The Fundamentalist
+    # AGENT 1: The Fundamentalist (Research Analyst)
     # =====================================================================
     fundamentalist = Agent(
-        role="Fundamentalist Analyst",
+        role="Fundamental Research Analyst",
         goal=(
             f"Research the latest news and macro conditions for {ticker} on NSE India. "
             f"The current India VIX is {vix_level:.1f}. "
-            f"Assess whether the macro environment supports or threatens this stock."
+            f"Assess the macro environment's alignment with this stock. "
+            f"Express findings in probabilities and data-backed observations, NOT as Buy/Sell recommendations."
         ),
         backstory=(
-            "You are a seasoned macro analyst at a top Indian hedge fund. "
+            "You are a research analyst writing for institutional clients. "
             "You read The Economic Times, Moneycontrol, and Bloomberg every morning. "
-            "You never ignore VIX — above 22 means the market is scared."
+            "You NEVER recommend Buy or Sell. Instead, you express findings as "
+            "'X% alignment with historical bullish conditions' or "
+            "'elevated headwinds from Y factors'. "
+            "Your job is to illuminate data and risks, not prescribe actions. "
+            "VIX above 22 indicates elevated market fear."
         ),
         tools=[search_tool] if search_tool else [],
         llm=llm,
@@ -182,20 +187,23 @@ def _execute_crew(
     )
 
     # =====================================================================
-    # AGENT 2: The Technician
+    # AGENT 2: The Technician (Quantitative Analyst)
     # =====================================================================
     technician = Agent(
-        role="Technical Analyst (Chartist)",
+        role="Quantitative Technical Analyst",
         goal=(
             f"Analyze the technical signals for {ticker}. "
             f"LSTM neural network: Probability={lstm_prob:.1%}, Signal={lstm_signal}. "
             f"Indicators: RSI={rsi}, MACD={macd:.4f}, Bollinger %B={bollinger:.4f}. "
-            f"Confirm or challenge the LSTM signal."
+            f"Assess alignment or divergence between model outputs and indicator readings. "
+            f"Express as probability alignments (e.g., '65% alignment with bullish regime'), NOT as recommendations."
         ),
         backstory=(
-            "You are an expert technical analyst with 15 years of experience. "
-            "You trust the LSTM model but always cross-verify with RSI and Bollinger Bands. "
-            "RSI > 70 = overbought, RSI < 30 = oversold."
+            "You are a quantitative technical analyst with 15 years of experience. "
+            "You assess data alignment, not give trading advice. "
+            "You cross-reference LSTM outputs with RSI, Bollinger Bands, and MACD. "
+            "RSI > 70 = overbought zone, RSI < 30 = oversold zone. "
+            "Your output is a data alignment assessment, never a trade instruction."
         ),
         llm=llm,
         verbose=False,
@@ -203,34 +211,39 @@ def _execute_crew(
     )
 
     # =====================================================================
-    # AGENT 3: The Risk Manager (THE BOSS)
+    # AGENT 3: The Risk Manager (Risk Assessment Lead)
     # =====================================================================
-    veto_rules = []
+    risk_flags = []
     if "Bear" in regime or vix_level > 22:
-        veto_rules.append(
-            f"⚠️ VETO ACTIVE: Regime='{regime}' and/or VIX={vix_level:.1f}>22. "
-            f"You MUST VETO any Buy unless exceptionally positive news justifies it."
+        risk_flags.append(
+            f"⚠️ HIGH RISK ENVIRONMENT: Regime='{regime}' and/or VIX={vix_level:.1f}>22. "
+            f"Elevated downside risk. Emphasize capital preservation scenarios."
         )
     if lstm_prob > 0.70 and "Bull" in regime:
-        veto_rules.append(
-            f"✅ STRONG SIGNAL: LSTM={lstm_prob:.1%} with Bull regime. "
-            f"If no red flags, this is a STRONG BUY."
+        risk_flags.append(
+            f"📊 STRONG DATA ALIGNMENT: LSTM={lstm_prob:.1%} with Bull regime. "
+            f"Data suggests {lstm_prob:.0%} alignment with historical bullish patterns."
         )
-    veto_text = "\n".join(veto_rules) if veto_rules else "No special veto rules. Use your judgment."
+    risk_text = "\n".join(risk_flags) if risk_flags else "No elevated risk flags. Standard assessment applies."
 
     risk_manager = Agent(
-        role="Chief Risk Manager (Final Decision Maker)",
+        role="Chief Risk Analyst (Risk Assessment Lead)",
         goal=(
-            f"You are the FINAL decision maker for {ticker}. "
+            f"Produce a comprehensive RISK ASSESSMENT for {ticker}. "
             f"Regime: {regime} ({regime_confidence:.0%}). VIX: {vix_level:.1f}. "
             f"LSTM: {lstm_signal} ({lstm_prob:.1%}). "
-            f"\n\nVETO RULES:\n{veto_text}\n\n"
-            f"Issue FINAL VERDICT: STRONG BUY / BUY / HOLD / SELL / STRONG SELL."
+            f"\n\nRISK FLAGS:\n{risk_text}\n\n"
+            f"Provide CONVICTION LEVEL: HIGH CONVICTION BULLISH / LEANING BULLISH / "
+            f"NEUTRAL-MIXED / LEANING BEARISH / HIGH CONVICTION BEARISH. "
+            f"NEVER say 'Buy' or 'Sell'. Express as data alignment and risk scenarios."
         ),
         backstory=(
-            "You are the Chief Risk Officer managing ₹5000 Cr in Indian equities. "
-            "You have VETO power. You've seen the 2008 crash, COVID crash, and 2024 bubble. "
-            "When VIX > 22, you become extremely cautious."
+            "You are the Chief Risk Analyst at an institutional research desk managing ₹5000 Cr. "
+            "You've seen the 2008 crash, COVID crash, and 2024 bubble. "
+            "You NEVER issue Buy/Sell instructions. You produce risk assessments: "
+            "'Data suggests X% alignment with historical bullish regimes, but faces resistance at Y.' "
+            "When VIX > 22, you emphasize downside scenarios. "
+            "Your output is decision SUPPORT, not the decision itself."
         ),
         llm=llm,
         verbose=False,
@@ -244,10 +257,11 @@ def _execute_crew(
         description=(
             f"Search for \"{ticker} India stock latest news\". "
             f"India VIX is {vix_level:.1f}. "
-            f"Report: bullish, bearish, or neutral? Any red flags?"
+            f"Assess macro alignment: what percentage of factors align with bullish vs bearish historical patterns? "
+            f"Identify key risk factors and tailwinds. Do NOT recommend Buy or Sell."
         ),
         agent=fundamentalist,
-        expected_output="3-5 bullet news summary. End with: BULLISH, BEARISH, or NEUTRAL.",
+        expected_output="3-5 bullet news/macro summary. End with: ALIGNMENT: X% bullish / Y% bearish factors.",
     )
 
     technical_task = Task(
@@ -255,25 +269,29 @@ def _execute_crew(
             f"Analyze {ticker} technicals. "
             f"LSTM: {lstm_signal} ({lstm_prob:.1%}). "
             f"RSI={rsi}, MACD={macd:.4f}, Bollinger %B={bollinger:.4f}. "
-            f"Confirm or contradict the AI signal."
+            f"Assess data alignment between model and indicators. "
+            f"Do NOT say 'Buy' or 'Sell'. Express as alignment percentages."
         ),
         agent=technician,
-        expected_output="Technical analysis. End with: CONFIRMS AI or CONTRADICTS AI.",
+        expected_output="Technical alignment assessment. End with: ALIGNED (>60%), DIVERGENT (<40%), or MIXED.",
     )
 
     manager_task = Task(
         description=(
-            f"Final Investment Decision for {ticker} (NSE)\n\n"
+            f"Risk Assessment & Research Briefing for {ticker} (NSE)\n\n"
             f"Regime: {regime} ({regime_confidence:.0%}), VIX: {vix_level:.1f}\n"
             f"LSTM: {lstm_signal} ({lstm_prob:.1%})\n"
-            f"Veto Rules: {veto_text}\n\n"
-            f"Write an Investment Memo with sections:\n"
-            f"1. Ticker & Date\n2. Market Regime\n3. LSTM Signal\n"
-            f"4. News Analysis\n5. Technical Analysis\n"
-            f"6. Risk Assessment\n7. FINAL VERDICT\n8. Justification"
+            f"Risk Flags: {risk_text}\n\n"
+            f"Write a Research Briefing with sections:\n"
+            f"1. Ticker & Date\n2. Market Regime Analysis\n3. LSTM Signal Assessment\n"
+            f"4. Macro/News Analysis\n5. Technical Alignment\n"
+            f"6. Risk Assessment & Downside Scenarios\n"
+            f"7. CONVICTION LEVEL (HIGH CONVICTION BULLISH / LEANING BULLISH / NEUTRAL-MIXED / LEANING BEARISH / HIGH CONVICTION BEARISH)\n"
+            f"8. Key Factors for Decision Maker\n\n"
+            f"IMPORTANT: Never use 'Buy' or 'Sell'. This is research for the decision maker, not the decision itself."
         ),
         agent=risk_manager,
-        expected_output="Structured Markdown Investment Memo with FINAL VERDICT.",
+        expected_output="Structured Markdown Research Briefing with CONVICTION LEVEL and risk scenarios. No Buy/Sell.",
     )
 
     # =====================================================================
@@ -294,12 +312,12 @@ def _execute_crew(
 
     memo_text = str(result)
     verdict = _extract_verdict(memo_text)
-    logger.info(f"📋 War Room complete for {ticker}: {verdict}")
+    logger.info(f"📋 Research Desk complete for {ticker}: {verdict}")
 
     return {
         "memo": memo_text,
         "verdict": verdict,
-        "agents_used": ["Fundamentalist", "Technician", "Risk Manager"],
+        "agents_used": ["Fundamental Research Analyst", "Quantitative Technical Analyst", "Chief Risk Analyst"],
         "error": None,
     }
 
@@ -323,66 +341,67 @@ def _build_fallback_memo(
     macd = features_summary.get("macd", 0)
     bollinger = features_summary.get("bollinger_pctb", 0.5)
 
-    # Apply veto logic
+    # Apply conviction logic (no Buy/Sell — research tiers only)
     if ("Bear" in regime or vix_level > 22) and lstm_signal == "Buy":
-        verdict = "HOLD"
+        verdict = "NEUTRAL-MIXED"
         justification = (
-            f"LSTM suggests Buy ({lstm_prob:.0%}), but VETO: "
-            f"Regime='{regime}', VIX={vix_level:.1f}. Capital preservation priority."
+            f"LSTM shows {lstm_prob:.0%} bullish probability, but regime='{regime}' "
+            f"and VIX={vix_level:.1f} indicate elevated risk. Conflicting signals warrant caution."
         )
     elif lstm_prob > 0.70 and "Bull" in regime:
-        verdict = "STRONG BUY"
+        verdict = "HIGH CONVICTION BULLISH"
         justification = (
-            f"Strong confluence: LSTM {lstm_prob:.0%} + Bull regime ({regime_confidence:.0%}). "
-            f"VIX {vix_level:.1f} manageable."
+            f"Data suggests {lstm_prob:.0%} alignment with historical bullish patterns. "
+            f"Bull regime ({regime_confidence:.0%}) and VIX {vix_level:.1f} support this assessment."
         )
     elif lstm_signal == "Buy":
-        verdict = "BUY"
-        justification = f"LSTM Buy ({lstm_prob:.0%}) in {regime}. RSI {rsi:.1f} supports entry."
+        verdict = "LEANING BULLISH"
+        justification = f"LSTM shows {lstm_prob:.0%} bullish probability in {regime} regime. RSI {rsi:.1f} within normal range."
     elif lstm_signal == "Sell":
-        verdict = "SELL"
-        justification = f"LSTM Sell ({lstm_prob:.0%}). RSI {rsi:.1f} confirms bearish momentum."
+        verdict = "LEANING BEARISH"
+        justification = f"LSTM shows {lstm_prob:.0%} bearish probability. RSI {rsi:.1f} supports downward momentum assessment."
     else:
-        verdict = "HOLD"
-        justification = f"Mixed signals — LSTM {lstm_prob:.0%}, regime {regime}, RSI {rsi:.1f}."
+        verdict = "NEUTRAL-MIXED"
+        justification = f"Mixed data signals — LSTM {lstm_prob:.0%}, regime {regime}, RSI {rsi:.1f}. Insufficient conviction for directional assessment."
 
-    rsi_status = "⚠️ Overbought" if rsi > 70 else ("📉 Oversold" if rsi < 30 else f"Normal ({rsi:.1f})")
+    rsi_status = "⚠️ Overbought zone" if rsi > 70 else ("📉 Oversold zone" if rsi < 30 else f"Normal ({rsi:.1f})")
     bb_status = "Extended" if bollinger > 1 else ("Compressed" if bollinger < 0 else f"Within bands ({bollinger:.2f})")
 
-    memo = f"""## Investment Memo: {ticker} (NSE)
+    memo = f"""## Research Briefing: {ticker} (NSE)
 
-### 1. Market Regime
-**{regime}** (confidence: {regime_confidence:.0%}) — HMM on Nifty 50
+### 1. Market Regime Analysis
+**{regime}** (confidence: {regime_confidence:.0%}) — Gaussian HMM on Nifty 50
 
-### 2. LSTM AI Signal
+### 2. LSTM Signal Assessment
 - Probability: **{lstm_prob:.1%}**
-- Signal: **{lstm_signal}**
+- Direction: **{lstm_signal}**
+- *This reflects historical pattern alignment, not a price target.*
 
 ### 3. Technical Indicators
-| Indicator | Value | Status |
+| Indicator | Value | Assessment |
 |-----------|-------|--------|
 | RSI (14) | {rsi:.1f} | {rsi_status} |
-| MACD | {macd:.4f} | {'Bullish' if macd > 0 else 'Bearish'} |
+| MACD | {macd:.4f} | {'Bullish alignment' if macd > 0 else 'Bearish alignment'} |
 | Bollinger %B | {bollinger:.4f} | {bb_status} |
 
-### 4. India VIX
-**{vix_level:.1f}** {'⚠️ Elevated fear' if vix_level > 22 else '✅ Calm market'}
+### 4. India VIX (Fear Gauge)
+**{vix_level:.1f}** {'⚠️ Elevated market fear — higher downside risk' if vix_level > 22 else '✅ Calm conditions'}
 
 ### 5. Risk Assessment
-{'🔴 VETO: Bear regime / elevated VIX. Defensive positioning.' if ('Bear' in regime or vix_level > 22) else '🟢 No veto conditions.'}
+{'🔴 HIGH RISK: Bear regime / elevated VIX. Data suggests increased downside probability.' if ('Bear' in regime or vix_level > 22) else '🟢 Standard risk conditions. No elevated flags.'}
 
-### 6. FINAL VERDICT: **{verdict}**
+### 6. CONVICTION LEVEL: **{verdict}**
 {justification}
 
 ---
-*📊 Real LSTM + HMM data. AI agents temporarily offline.*
-*⚠️ Not financial advice. Educational purposes only.*
+*📊 Based on LSTM + HMM quantitative analysis. AI research agents temporarily offline.*
+*⚠️ For research purposes only. This does not constitute financial advice. The decision maker must exercise independent judgment.*
 """
 
     return {
         "memo": memo,
         "verdict": verdict,
-        "agents_used": ["Technical Analysis Fallback (LSTM + HMM)"],
+        "agents_used": ["Quantitative Analysis Fallback (LSTM + HMM)"],
         "error": None,
     }
 
@@ -392,13 +411,14 @@ def _build_fallback_memo(
 # =============================================================================
 
 def _extract_verdict(memo: str) -> str:
+    """Extract conviction level from research briefing (no Buy/Sell)."""
     memo_upper = memo.upper()
-    if "STRONG BUY" in memo_upper:
-        return "STRONG BUY"
-    if "STRONG SELL" in memo_upper:
-        return "STRONG SELL"
-    if "SELL" in memo_upper and "BUY" not in memo_upper:
-        return "SELL"
-    if "BUY" in memo_upper and "SELL" not in memo_upper:
-        return "BUY"
-    return "HOLD"
+    if "HIGH CONVICTION BULLISH" in memo_upper:
+        return "HIGH CONVICTION BULLISH"
+    if "HIGH CONVICTION BEARISH" in memo_upper:
+        return "HIGH CONVICTION BEARISH"
+    if "LEANING BULLISH" in memo_upper:
+        return "LEANING BULLISH"
+    if "LEANING BEARISH" in memo_upper:
+        return "LEANING BEARISH"
+    return "NEUTRAL-MIXED"

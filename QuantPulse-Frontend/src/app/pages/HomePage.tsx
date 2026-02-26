@@ -8,33 +8,33 @@ export function HomePage() {
   const features = [
     {
       icon: Brain,
-      title: 'AI-Driven Predictions',
-      description: 'Advanced machine learning algorithms analyze market patterns and technical indicators.'
+      title: 'AI-Powered Research Desk',
+      description: 'Multi-agent research system using LSTM, HMM, and CrewAI to illuminate market data and surface insights.'
     },
     {
       icon: TrendingUp,
-      title: 'Real-Time Analytics',
-      description: 'Get instant insights on NSE stocks with live price updates and sentiment analysis.'
+      title: 'Real-Time Regime Analysis',
+      description: 'Gaussian HMM detects Bull, Bear, and Sideways regimes on Nifty 50 with confidence scoring.'
     },
     {
       icon: Shield,
-      title: 'Secure & Reliable',
-      description: 'Bank-grade security with 99.9% uptime for uninterrupted market monitoring.'
+      title: 'Risk-First Intelligence',
+      description: 'Downside scenarios, VIX monitoring, and risk assessment are the core of every analysis output.'
     },
     {
       icon: Zap,
       title: 'Lightning Fast',
-      description: 'Sub-second response times for critical trading decisions and market movements.'
+      description: 'Sub-second data processing for critical market regime shifts and risk reassessment.'
     },
     {
       icon: Target,
-      title: 'Precision Accuracy',
-      description: 'High-confidence predictions backed by comprehensive market data analysis.'
+      title: 'Decision Support',
+      description: 'Conviction-level assessments backed by quantitative data alignment — you make the final call.'
     },
     {
       icon: BarChart3,
       title: 'Advanced Charts',
-      description: 'Interactive visualizations with technical indicators and pattern recognition.'
+      description: 'Interactive visualizations with technical indicators, regime overlays, and pattern recognition.'
     }
   ];
 
@@ -48,7 +48,7 @@ export function HomePage() {
         <div className="max-w-6xl mx-auto text-center relative">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[rgba(58,111,248,0.1)] border border-[rgba(58,111,248,0.2)] mb-8 hover:bg-[rgba(58,111,248,0.15)] transition-colors cursor-default">
             <span className="size-2 rounded-full bg-[#3A6FF8] animate-pulse"></span>
-            <span className="text-sm font-medium text-[#5B8DFF]">AI-Powered Stock Market Intelligence</span>
+            <span className="text-sm font-medium text-[#5B8DFF]">AI-Powered Research & Risk Analysis</span>
           </div>
 
           <h1 className="text-5xl md:text-[5rem] leading-[1.1] mb-6 font-bold tracking-tight text-zinc-100">
@@ -56,12 +56,12 @@ export function HomePage() {
           </h1>
 
           <p className="text-xl md:text-2xl text-zinc-400 mb-4 font-normal tracking-wide pl-2 border-l-2 border-[#3A6FF8]/30">
-            Next-Generation Stock Market Predictions
+            Institutional-Grade Research & Risk Analysis
           </p>
 
           <p className="text-lg text-zinc-400 mb-12 max-w-3xl mx-auto">
-            Harness the power of artificial intelligence to predict market movements on NSE stocks.
-            Get real-time sentiment analysis, AI-driven predictions, and actionable insights.
+            Analyze market regimes, assess risk, and illuminate data for NSE stocks.
+            Multi-agent research debate, regime detection, and decision support — you make the final call.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-5 mt-10">
@@ -74,7 +74,7 @@ export function HomePage() {
             <Link to="/dashboard">
               <Button variant="secondary" size="lg" className="h-14 px-8 text-lg bg-[rgba(15,23,42,0.4)]">
                 <TrendingUp className="size-5" />
-                View Dashboard
+                Open Research Desk
               </Button>
             </Link>
           </div>
@@ -90,7 +90,7 @@ export function HomePage() {
             </h2>
             <p className="text-lg text-zinc-400 max-w-2xl mx-auto leading-relaxed">
               Our platform combines cutting-edge AI with comprehensive market data to deliver
-              actionable insights for Indian stock markets.
+              institutional-grade research and risk analysis for Indian stock markets.
             </p>
           </div>
 
@@ -123,11 +123,11 @@ export function HomePage() {
         <div className="max-w-4xl mx-auto text-center">
           <Card className="p-12 bg-[rgba(30,58,138,0.35)] backdrop-blur-lg border border-[rgba(100,150,255,0.2)] shadow-xl shadow-blue-900/10">
             <h2 className="text-3xl md:text-4xl mb-4 text-zinc-100">
-              Ready to Transform Your Trading?
+              Elevate Your Research
             </h2>
             <p className="text-lg text-zinc-400 mb-8 max-w-2xl mx-auto">
-              Join thousands of traders using QuantPulse India to make smarter,
-              data-driven decisions in the Indian stock market.
+              Join institutional desks and prosumer analysts using QuantPulse India for
+              data-driven risk analysis and decision support in the Indian stock market.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link
@@ -152,7 +152,7 @@ export function HomePage() {
         <div className="max-w-6xl mx-auto text-center text-zinc-400 text-sm">
           <p>&copy; 2026 QuantPulse India. All rights reserved.</p>
           <p className="mt-2">
-            Market data is simulated for demonstration purposes. Not financial advice.
+            For research purposes only. Does not constitute financial advice. All investment decisions are the responsibility of the user.
           </p>
         </div>
       </footer>

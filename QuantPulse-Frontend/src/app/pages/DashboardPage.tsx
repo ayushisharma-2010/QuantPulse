@@ -24,6 +24,8 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Minus,
+  Zap,
+  Info,
 } from "lucide-react";
 
 // Chart data generator (until real OHLC endpoint is built)
@@ -66,12 +68,11 @@ export function DashboardPage() {
     }
     setIsLoading(false);
 
-    // 2. Fetch V2 AI Analysis (LSTM + HMM + War Room) — this is the real source of truth
+    // 2. Fetch V2 AI Analysis (LSTM + HMM + Research Agents)
     setIsV2Loading(true);
     try {
       const v2 = await fetchV2Analysis(symbol);
       setV2Data(v2);
-      // If V2 returned a price, update chart with real price
       if (v2.stock_price?.current_price) {
         setChartData(generateStockData(v2.stock_price.current_price));
       }
@@ -98,22 +99,46 @@ export function DashboardPage() {
   const dayChangePct = v2Data?.stock_price?.day_change_pct ?? stockData?.changePercent ?? 0;
   const isPositive = dayChange >= 0;
 
-  // Signal config
-  const getSignalConfig = (signal: string) => {
+  // Conviction level config (replaces Buy/Sell signal config)
+  const getConvictionConfig = (verdict: string) => {
+    if (verdict.includes("HIGH CONVICTION BULLISH"))
+      return { color: "text-teal-400", bg: "bg-teal-500/15", border: "border-teal-500/30", label: "High Conviction Bullish" };
+    if (verdict.includes("LEANING BULLISH"))
+      return { color: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/20", label: "Leaning Bullish" };
+    if (verdict.includes("HIGH CONVICTION BEARISH"))
+      return { color: "text-red-400", bg: "bg-red-500/15", border: "border-red-500/30", label: "High Conviction Bearish" };
+    if (verdict.includes("LEANING BEARISH"))
+      return { color: "text-orange-400", bg: "bg-orange-500/10", border: "border-orange-500/20", label: "Leaning Bearish" };
+    return { color: "text-amber-400", bg: "bg-amber-500/10", border: "border-amber-500/20", label: "Neutral / Mixed" };
+  };
+
+  // LSTM Signal display (Bullish/Bearish/Neutral instead of Buy/Sell)
+  const getLSTMDisplay = (signal: string) => {
     switch (signal) {
       case "Buy":
-        return { color: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/20", icon: ArrowUpRight };
+        return { label: "Bullish", color: "text-emerald-400", icon: ArrowUpRight };
       case "Sell":
-        return { color: "text-red-400", bg: "bg-red-500/10", border: "border-red-500/20", icon: ArrowDownRight };
+        return { label: "Bearish", color: "text-red-400", icon: ArrowDownRight };
       default:
-        return { color: "text-blue-400", bg: "bg-blue-500/10", border: "border-blue-500/20", icon: Minus };
+        return { label: "Neutral", color: "text-blue-400", icon: Minus };
     }
   };
 
-  const getVerdictConfig = (verdict: string) => {
-    if (verdict.includes("BUY")) return "bg-emerald-500/15 text-emerald-400 border-emerald-500/30";
-    if (verdict.includes("SELL")) return "bg-red-500/15 text-red-400 border-red-500/30";
-    return "bg-blue-500/15 text-blue-400 border-blue-500/30";
+  // Detect conflict between fundamental and technical signals from memo
+  const detectDebate = (memo: string): { hasConflict: boolean; fundamentalSignal: string; technicalSignal: string } => {
+    const upper = memo.toUpperCase();
+    const hasBullishFundamental = upper.includes("BULLISH") && (upper.includes("MACRO") || upper.includes("NEWS") || upper.includes("FUNDAMENTAL"));
+    const hasBearishTechnical = upper.includes("DIVERGENT") || (upper.includes("BEARISH") && upper.includes("TECHNICAL"));
+    const hasBullishTechnical = upper.includes("ALIGNED") && upper.includes("TECHNICAL");
+    const hasBearishFundamental = upper.includes("HEADWIND") || (upper.includes("BEARISH") && upper.includes("MACRO"));
+
+    const hasConflict = (hasBullishFundamental && hasBearishTechnical) || (hasBearishFundamental && hasBullishTechnical);
+
+    return {
+      hasConflict,
+      fundamentalSignal: hasBullishFundamental ? "Aligned" : hasBearishFundamental ? "Divergent" : "Mixed",
+      technicalSignal: hasBullishTechnical ? "Aligned" : hasBearishTechnical ? "Divergent" : "Mixed",
+    };
   };
 
   return (
@@ -128,11 +153,23 @@ export function DashboardPage() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-[2rem] font-bold text-zinc-100 mb-2 tracking-tight">
-            Stock Analytics Dashboard
+            Research Desk
           </h1>
           <p className="text-zinc-400 text-lg">
-            Real-time NSE analysis powered by LSTM, HMM & AI Agents
+            NSE regime analysis, risk assessment & decision support
           </p>
+        </div>
+
+        {/* Research Disclaimer Banner */}
+        <div className="flex items-start gap-3 bg-amber-500/5 border border-amber-500/15 p-4 rounded-xl">
+          <Info className="size-5 text-amber-400 shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm text-amber-300 font-medium">Research Purposes Only</p>
+            <p className="text-xs text-amber-400/70 mt-1">
+              All outputs are for informational and research purposes only. They do not constitute financial advice,
+              investment recommendations, or solicitation to buy or sell securities. The decision maker must exercise independent judgment.
+            </p>
+          </div>
         </div>
 
         {/* Stock Search */}
@@ -148,7 +185,7 @@ export function DashboardPage() {
           <div className="border-l-[6px] border-l-[#3A6FF8] bg-[rgba(15,23,42,0.4)] backdrop-blur-xl p-6 rounded-r-xl shadow-lg shadow-blue-900/5 flex items-center justify-between border-y border-r border-y-[#3A6FF8]/10 border-r-[#3A6FF8]/10">
             <div>
               <p className="text-sm text-zinc-400 font-medium uppercase tracking-wider mb-1">
-                Currently Viewing
+                Currently Analyzing
               </p>
               <div className="flex items-baseline gap-3">
                 <p className="text-3xl font-bold text-zinc-100">
@@ -185,7 +222,7 @@ export function DashboardPage() {
             )}
 
             {/* ============================================================== */}
-            {/* AI ANALYSIS ENGINE — The Main Event */}
+            {/* AI RESEARCH ENGINE — Risk-First Layout                         */}
             {/* ============================================================== */}
             <div className="mt-4">
               <div className="flex items-center gap-3 mb-5">
@@ -193,61 +230,45 @@ export function DashboardPage() {
                   <Brain className="size-5 text-[#5B8DFF]" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-semibold text-zinc-100">AI Analysis Engine</h2>
-                  <p className="text-xs text-zinc-500">LSTM Neural Network • HMM Regime Detection • Multi-Agent Debate</p>
+                  <h2 className="text-xl font-semibold text-zinc-100">AI Research Engine</h2>
+                  <p className="text-xs text-zinc-500">LSTM Neural Network • HMM Regime Detection • Multi-Agent Research Debate</p>
                 </div>
-                {v2Data && (
-                  <span className={`ml-auto text-sm font-bold px-4 py-1.5 rounded-full border ${getVerdictConfig(v2Data.details.war_room.verdict)}`}>
-                    {v2Data.details.war_room.verdict}
-                  </span>
-                )}
+                {v2Data && (() => {
+                  const cfg = getConvictionConfig(v2Data.details.war_room.verdict);
+                  return (
+                    <span className={`ml-auto text-sm font-bold px-4 py-1.5 rounded-full border ${cfg.bg} ${cfg.color} ${cfg.border}`}>
+                      {cfg.label}
+                    </span>
+                  );
+                })()}
               </div>
 
               {isV2Loading ? (
                 <div className="h-[250px] flex flex-col items-center justify-center rounded-2xl border border-dashed border-zinc-800 bg-zinc-900/20">
                   <Loader2 className="size-8 text-[#5B8DFF] animate-spin mb-4" />
-                  <p className="text-zinc-400 font-medium">Running AI Pipeline...</p>
+                  <p className="text-zinc-400 font-medium">Running Research Pipeline...</p>
                   <p className="text-zinc-600 text-xs mt-1">LSTM → HMM → Agent Debate (~15-30s)</p>
                 </div>
               ) : v2Data ? (
                 <div className="space-y-5">
-                  {/* Signal Cards Row */}
+                  {/* ===== RISK-FIRST: Regime + VIX top row ===== */}
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                    {/* LSTM Signal */}
-                    {(() => {
-                      const cfg = getSignalConfig(v2Data.ai_signal);
-                      const Icon = cfg.icon;
-                      return (
-                        <div className={`${cfg.bg} border ${cfg.border} p-5 rounded-2xl`}>
-                          <div className="flex items-center gap-2 text-zinc-400 mb-3">
-                            <TrendingUp size={15} />
-                            <span className="text-[10px] uppercase tracking-widest font-semibold">LSTM Signal</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Icon size={20} className={cfg.color} />
-                            <span className={`text-xl font-bold ${cfg.color}`}>{v2Data.ai_signal}</span>
-                          </div>
-                          <p className="text-xs text-zinc-500 mt-1">Probability: {v2Data.confidence}</p>
-                        </div>
-                      );
-                    })()}
-
-                    {/* Market Regime */}
-                    <div className="bg-[rgba(15,23,42,0.4)] backdrop-blur-xl p-5 rounded-2xl border border-white/5">
+                    {/* Market Regime — FIRST */}
+                    <div className="bg-[rgba(15,23,42,0.4)] backdrop-blur-xl p-5 rounded-2xl border border-white/5 ring-1 ring-blue-500/10">
                       <div className="flex items-center gap-2 text-zinc-400 mb-3">
                         <BarChart2 size={15} />
                         <span className="text-[10px] uppercase tracking-widest font-semibold">Regime (HMM)</span>
                       </div>
                       <p className={`text-xl font-bold ${v2Data.regime.includes("Bull") ? "text-emerald-400" :
-                          v2Data.regime.includes("Bear") ? "text-red-400" : "text-blue-400"
+                        v2Data.regime.includes("Bear") ? "text-red-400" : "text-blue-400"
                         }`}>{v2Data.regime}</p>
                       <p className="text-xs text-zinc-500 mt-1">
                         Confidence: {(v2Data.details.regime_detection.confidence * 100).toFixed(0)}%
                       </p>
                     </div>
 
-                    {/* India VIX */}
-                    <div className="bg-[rgba(15,23,42,0.4)] backdrop-blur-xl p-5 rounded-2xl border border-white/5">
+                    {/* India VIX — SECOND */}
+                    <div className="bg-[rgba(15,23,42,0.4)] backdrop-blur-xl p-5 rounded-2xl border border-white/5 ring-1 ring-blue-500/10">
                       <div className="flex items-center gap-2 text-zinc-400 mb-3">
                         <Shield size={15} />
                         <span className="text-[10px] uppercase tracking-widest font-semibold">India VIX</span>
@@ -256,11 +277,30 @@ export function DashboardPage() {
                         {v2Data.vix.toFixed(1)}
                       </p>
                       <p className="text-xs text-zinc-500 mt-1">
-                        {v2Data.vix > 22 ? "⚠️ High fear" : v2Data.vix > 16 ? "⚡ Moderate" : "✅ Calm"}
+                        {v2Data.vix > 22 ? "⚠️ High fear — elevated risk" : v2Data.vix > 16 ? "⚡ Moderate" : "✅ Calm conditions"}
                       </p>
                     </div>
 
-                    {/* Technical Snapshot */}
+                    {/* LSTM Signal — THIRD (Bullish/Bearish/Neutral, NOT Buy/Sell) */}
+                    {(() => {
+                      const lstm = getLSTMDisplay(v2Data.ai_signal);
+                      const Icon = lstm.icon;
+                      return (
+                        <div className="bg-[rgba(15,23,42,0.4)] backdrop-blur-xl p-5 rounded-2xl border border-white/5">
+                          <div className="flex items-center gap-2 text-zinc-400 mb-3">
+                            <TrendingUp size={15} />
+                            <span className="text-[10px] uppercase tracking-widest font-semibold">LSTM Signal</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Icon size={20} className={lstm.color} />
+                            <span className={`text-xl font-bold ${lstm.color}`}>{lstm.label}</span>
+                          </div>
+                          <p className="text-xs text-zinc-500 mt-1">Probability: {v2Data.confidence}</p>
+                        </div>
+                      );
+                    })()}
+
+                    {/* Technical Snapshot — FOURTH */}
                     <div className="bg-[rgba(15,23,42,0.4)] backdrop-blur-xl p-5 rounded-2xl border border-white/5">
                       <div className="flex items-center gap-2 text-zinc-400 mb-3">
                         <Activity size={15} />
@@ -270,7 +310,7 @@ export function DashboardPage() {
                         <div className="flex justify-between text-xs">
                           <span className="text-zinc-500">RSI</span>
                           <span className={`font-semibold ${v2Data.details.lstm.features.rsi > 70 ? "text-red-400" :
-                              v2Data.details.lstm.features.rsi < 30 ? "text-emerald-400" : "text-zinc-300"
+                            v2Data.details.lstm.features.rsi < 30 ? "text-emerald-400" : "text-zinc-300"
                             }`}>{v2Data.details.lstm.features.rsi?.toFixed(1) ?? "—"}</span>
                         </div>
                         <div className="flex justify-between text-xs">
@@ -286,21 +326,41 @@ export function DashboardPage() {
                     </div>
                   </div>
 
+                  {/* ===== MARKET DEBATE BANNER ===== */}
+                  {(() => {
+                    const debate = detectDebate(v2Data.final_report || v2Data.details.war_room.memo || "");
+                    if (debate.hasConflict) {
+                      return (
+                        <div className="flex items-center gap-3 bg-red-500/5 border border-red-500/20 p-4 rounded-xl">
+                          <Zap className="size-5 text-red-400 shrink-0" />
+                          <div>
+                            <p className="text-sm text-red-300 font-semibold">⚡ Market Debate — Conflicting Signals</p>
+                            <p className="text-xs text-red-400/70 mt-1">
+                              Fundamental analysis ({debate.fundamentalSignal}) and Technical analysis ({debate.technicalSignal}) are in conflict.
+                              Review both perspectives below before making your assessment.
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
+
                   {/* Agents Status (if offline) */}
                   {v2Data.details.war_room.error && (
                     <div className="flex items-center gap-3 bg-amber-500/5 border border-amber-500/15 p-3 rounded-xl">
                       <AlertCircle className="size-4 text-amber-400 shrink-0" />
                       <p className="text-xs text-amber-400/80">
-                        AI agents temporarily offline (quota exceeded). Showing real LSTM + HMM analysis.
+                        Research agents temporarily offline (quota exceeded). Showing quantitative LSTM + HMM analysis.
                       </p>
                     </div>
                   )}
 
-                  {/* Investment Memo */}
+                  {/* Research Briefing (replaces Investment Memo) */}
                   <div className="bg-[rgba(15,23,42,0.4)] backdrop-blur-xl p-6 lg:p-8 rounded-2xl border border-white/5">
                     <div className="flex items-center gap-2 mb-5">
                       <FileText size={16} className="text-[#5B8DFF]" />
-                      <h3 className="text-sm font-semibold text-zinc-200 uppercase tracking-wider">Investment Memo</h3>
+                      <h3 className="text-sm font-semibold text-zinc-200 uppercase tracking-wider">Research Briefing</h3>
                     </div>
                     <div className="prose prose-invert prose-sm max-w-none
                       prose-headings:text-blue-400 prose-headings:font-semibold prose-headings:mt-6 prose-headings:mb-3
@@ -325,13 +385,13 @@ export function DashboardPage() {
               )}
             </div>
 
-            {/* Footer */}
+            {/* Footer with prominent disclaimer */}
             <div className="mt-8 pt-6 border-t border-[rgba(100,150,255,0.1)]">
               <p className="text-center text-[10px] text-zinc-500 uppercase tracking-widest">
-                QuantPulse India • AI-Powered Analytics • {new Date().getFullYear()}
+                QuantPulse India • AI-Powered Research Desk • {new Date().getFullYear()}
               </p>
               <p className="text-center text-[9px] text-zinc-600 mt-1">
-                ⚠️ Not financial advice. Educational purposes only.
+                ⚠️ For research purposes only. Does not constitute financial advice. All investment decisions are the responsibility of the decision maker.
               </p>
             </div>
           </>
